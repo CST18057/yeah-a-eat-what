@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#17211b">
+    <title>是啊，吃什么</title>
+    <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="/" aria-label="是啊，吃什么首页">
+          <span class="brand-mark" aria-hidden="true">食</span>
+          <span>
+            <strong>是啊，吃什么</strong>
+            <small>城市午饭抽签器</small>
+          </span>
+        </a>
+        <div class="header-meta">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="app-version">公开地点示例</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section class="intro" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">LUNCH, DECIDED.</p>
+          <h1 id="page-title">今天，认真吃一顿。</h1>
+        </div>
+        <p class="intro-copy">
+          选一座城市，抽一个地点。地图里的点位来自公开示例数据，不代表实时营业状态。
+        </p>
+      </section>
+
+      <div class="workspace">
+        <section class="panel controls-panel" aria-labelledby="controls-title">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">01 / 定城市</p>
+              <h2 id="controls-title">这顿吃哪里</h2>
+            </div>
+            <span id="city-count" class="count-badge">-- 城</span>
+          </div>
+
+          <label class="field-label" for="city-select">午饭城市</label>
+          <div class="select-wrap">
+            <select id="city-select" disabled>
+              <option>正在加载城市...</option>
+            </select>
+          </div>
+
+          <button id="spin-button" class="primary-button" type="button" disabled>
+            <span>帮我决定</span>
+            <span class="button-key" aria-hidden="true">SPACE</span>
+          </button>
+
+          <div id="result-card" class="result-card" aria-live="polite">
+            <p class="result-label">抽签结果</p>
+            <p id="result-name" class="result-name">先从一座城市开始</p>
+            <p id="result-meta" class="result-meta">也可以直接按下抽签按钮。</p>
+          </div>
+
+          <p id="global-status" class="global-status" role="status">
+            正在准备城市和地点数据。
+          </p>
+        </section>
+
+        <section class="panel map-panel" aria-labelledby="map-title">
+          <div class="panel-heading map-heading">
+            <div>
+              <p class="section-kicker">02 / 看位置</p>
+              <h2 id="map-title">城市地图</h2>
+            </div>
+            <p id="map-caption" class="map-caption">等待城市数据</p>
+          </div>
+          <div class="map-stage">
+            <div id="map" aria-label="城市公开地点地图"></div>
+            <div id="map-fallback" class="map-fallback" role="status" hidden>
+              <strong>地图暂时安静</strong>
+              <span id="map-fallback-detail">地区切换和随机抽签仍然可用。</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel places-panel" aria-labelledby="places-title">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">03 / 挑一个</p>
+              <h2 id="places-title">地点清单</h2>
+            </div>
+            <span id="place-count" class="count-badge">-- 处</span>
+          </div>
+          <p id="place-status" class="panel-status" role="status">等待加载地点。</p>
+          <ul id="places-list" class="places-list" aria-live="polite"></ul>
+          <p class="source-note">
+            地点来自 OpenStreetMap 公开示例，仅供选餐灵感，不替代商户实时信息。
+          </p>
+        </section>
+      </div>
+    </main>
+
+    <script src="/vendor/leaflet/leaflet.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

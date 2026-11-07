@@ -1,0 +1,32 @@
+[
+  {
+    "name": "desktop core flow",
+    "status": "passed",
+    "durationMs": 343
+  },
+  {
+    "name": "mobile core flow",
+    "status": "passed",
+    "durationMs": 238
+  },
+  {
+    "name": "places failure clears stale marker and popup",
+    "status": "passed",
+    "durationMs": 306
+  },
+  {
+    "name": "out-of-order city responses keep the latest city",
+    "status": "passed",
+    "durationMs": 1176
+  },
+  {
+    "name": "pending spin is discarded after city switch",
+    "status": "passed",
+    "durationMs": 972
+  },
+  {
+    "name": "tile failure keeps markers and explains fallback",
+    "status": "passed",
+    "durationMs": 123
+  }
+]
