@@ -648,6 +648,122 @@ const tests = [
     },
   },
   {
+    name: "delayed places responses preserve the world view",
+    async run(browser) {
+      const scenarios = [
+        {
+          name: "success",
+          failPlaces: [],
+          expectedPlaces: 5,
+          expectedStatus: "已加载 5 个公开地点",
+          expectedFallback: false,
+        },
+        {
+          name: "failure",
+          failPlaces: ["beijing"],
+          expectedPlaces: 0,
+          expectedStatus: "地点加载失败",
+          expectedFallback: true,
+        },
+      ];
+      const evidence = [];
+
+      for (const scenario of scenarios) {
+        const { context, page, pageErrors, apiRequests } = await openPage(
+          browser,
+          { width: 1280, height: 900 },
+          {
+            delayByRegion: { beijing: 1200 },
+            failPlaces: scenario.failPlaces,
+          },
+        );
+        await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+        await waitForCityReady(page);
+        await page.waitForSelector("#world-view-button:not([disabled])");
+
+        await page.locator("#world-view-button").click();
+        await page.waitForFunction(
+          () =>
+            document
+              .querySelector("#world-view-button")
+              ?.getAttribute("aria-pressed") === "true",
+        );
+        await page.waitForFunction(
+          () => Number(document.querySelector("#map").dataset.zoom) <= 3,
+        );
+        const beforeResponse = await mapState(page);
+        assert.equal(
+          await page.locator("#place-count").textContent(),
+          "-- 处",
+        );
+
+        await page.waitForFunction(
+          (statusText) =>
+            document
+              .querySelector("#place-status")
+              ?.textContent.includes(statusText),
+          scenario.expectedStatus,
+        );
+        const afterResponse = await mapState(page);
+
+        assert.ok(afterResponse.zoom <= 3);
+        assert.equal(
+          await page
+            .locator("#world-view-button")
+            .getAttribute("aria-pressed"),
+          "true",
+        );
+        assert.match(
+          await page.locator("#map-caption").textContent(),
+          /世界视图 · 抽签城市：北京/,
+        );
+        assert.equal(
+          await page.locator(".place-marker-icon").count(),
+          scenario.expectedPlaces,
+        );
+        assert.equal(
+          await page.locator("#map-fallback").isVisible(),
+          scenario.expectedFallback,
+        );
+
+        await page.screenshot({
+          path: path.join(
+            outputDir,
+            `world-view-delayed-${scenario.name}.png`,
+          ),
+          fullPage: true,
+        });
+
+        const requestsBeforeReturn = apiRequests.length;
+        await page.locator("#return-city-button").click();
+        await page.waitForFunction(() =>
+          document.querySelector("#map-caption")?.textContent.includes("北京"),
+        );
+        assert.ok((await mapState(page)).zoom > 3);
+        assert.equal(apiRequests.length, requestsBeforeReturn);
+
+        await page.locator("#spin-button").click();
+        await page.waitForFunction(
+          () => document.querySelector("#result-name")?.textContent === "北京烤鸭",
+        );
+        assert.deepEqual(pageErrors, []);
+
+        evidence.push({
+          scenario: scenario.name,
+          beforeResponse,
+          afterResponse,
+          requests: apiRequests,
+        });
+        await context.close();
+      }
+
+      await fs.writeFile(
+        path.join(outputDir, "delayed-world-view-race.json"),
+        `${JSON.stringify(evidence, null, 2)}\n`,
+      );
+    },
+  },
+  {
     name: "places failure clears stale marker and popup",
     async run(browser) {
       const { context, page, pageErrors } = await openPage(

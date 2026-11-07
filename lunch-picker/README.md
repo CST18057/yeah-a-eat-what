@@ -62,6 +62,9 @@ listings or a real-time availability feed.
 - Dragging, wheel zoom, pinch zoom, and city-marker popups only browse the map.
   They do not change the city, place list, or spin result, and they do not request
   `/places` or `/api/spin`.
+- If a city's places response arrives after the user opens world view, markers
+  and list state update without moving the map or replacing the world-view
+  caption.
 - Changing the city selector is the explicit action that updates the map center,
   places request, and current lunch city together.
 

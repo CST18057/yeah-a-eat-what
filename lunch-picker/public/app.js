@@ -588,7 +588,9 @@
       state.placesError = "";
       renderPlaces();
       renderMarkers();
-      focusMap(region, state.places);
+      if (!state.worldViewActive) {
+        focusMap(region, state.places);
+      }
 
       if (state.places.length) {
         setStatus(
@@ -601,7 +603,9 @@
         setStatus(globalStatus, "地点清单为空，仍可尝试随机抽签。");
       }
 
-      setMapCaptionForCurrentCity();
+      if (!state.worldViewActive) {
+        setMapCaptionForCurrentCity();
+      }
     } catch (error) {
       if (requestId !== state.cityRequestId) {
         return;
@@ -619,8 +623,10 @@
         "error",
       );
       setStatus(globalStatus, "地点清单暂时不可用，抽签入口保持开放。", "error");
-      setMapCaptionForCurrentCity();
-      focusMap(region);
+      if (!state.worldViewActive) {
+        setMapCaptionForCurrentCity();
+        focusMap(region);
+      }
       updateMapFallback();
     }
   }
