@@ -438,7 +438,7 @@
       state.places = [];
       state.placesError = "地点暂时不可用";
       clearMarkers();
-      clearPlacesList("地点加载失败。地区切换和随机抽签仍然可用。");
+      clearPlacesList("暂无地点，可换城市或直接抽签。");
       placeCount.textContent = "0 处";
       renderResult("地点暂时不可用", `仍可抽签，当前城市：${region.name}`);
       setStatus(

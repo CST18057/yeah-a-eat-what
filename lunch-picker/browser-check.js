@@ -237,6 +237,8 @@ const tests = [
       await page.waitForFunction(
         () => document.querySelector("#result-name")?.textContent === "北京烤鸭",
       );
+      await page.waitForSelector(".popup-name");
+      assert.equal(await page.locator(".popup-name").textContent(), "北京烤鸭");
       await page.screenshot({
         path: path.join(outputDir, "mobile-core.png"),
         fullPage: true,
