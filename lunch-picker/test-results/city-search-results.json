@@ -1,0 +1,37 @@
+{
+  "examples": [
+    {
+      "query": " 东 ",
+      "resultIds": [
+        "tokyo"
+      ]
+    },
+    {
+      "query": "tok",
+      "resultIds": [
+        "tokyo"
+      ]
+    },
+    {
+      "query": "NEW",
+      "resultIds": [
+        "new-york"
+      ]
+    },
+    {
+      "query": "york",
+      "resultIds": [
+        "new-york"
+      ]
+    },
+    {
+      "query": "ｔｏｋ",
+      "resultIds": [
+        "tokyo"
+      ]
+    }
+  ],
+  "noMatch": "no-such-city",
+  "searchIndexFailure": "城市搜索暂不可用",
+  "apiRequests": []
+}

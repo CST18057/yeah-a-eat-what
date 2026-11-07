@@ -1,0 +1,19 @@
+{
+  "confirmOrder": [
+    "tokyo",
+    "singapore"
+  ],
+  "finalCity": "singapore",
+  "placeRequests": [
+    {
+      "method": "GET",
+      "pathname": "/api/regions/tokyo/places",
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/regions/singapore/places",
+      "body": ""
+    }
+  ]
+}

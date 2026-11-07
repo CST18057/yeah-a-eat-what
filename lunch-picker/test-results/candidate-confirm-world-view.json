@@ -1,0 +1,26 @@
+{
+  "confirmedCity": "tokyo",
+  "finalMap": {
+    "zoom": 1,
+    "lat": 0.00356,
+    "lng": 0.12684
+  },
+  "worldViewActive": "true",
+  "apiRequests": [
+    {
+      "method": "GET",
+      "pathname": "/api/regions",
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/regions/beijing/places",
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/regions/tokyo/places",
+      "body": ""
+    }
+  ]
+}

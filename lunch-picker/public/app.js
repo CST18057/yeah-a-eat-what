@@ -3,6 +3,9 @@
 
   const citySelect = document.querySelector("#city-select");
   const cityCount = document.querySelector("#city-count");
+  const citySearch = document.querySelector("#city-search");
+  const searchStatus = document.querySelector("#search-status");
+  const searchResults = document.querySelector("#city-search-results");
   const spinButton = document.querySelector("#spin-button");
   const resultName = document.querySelector("#result-name");
   const resultMeta = document.querySelector("#result-meta");
@@ -13,6 +16,12 @@
   const mapElement = document.querySelector("#map");
   const worldViewButton = document.querySelector("#world-view-button");
   const returnCityButton = document.querySelector("#return-city-button");
+  const candidatePreview = document.querySelector("#candidate-preview");
+  const currentCityLabel = document.querySelector("#current-city-label");
+  const candidateCityLabel = document.querySelector("#candidate-city-label");
+  const confirmCityButton = document.querySelector("#confirm-city-button");
+  const cancelCityButton = document.querySelector("#cancel-city-button");
+  const closeCandidateButton = document.querySelector("#close-candidate-button");
   const placeCount = document.querySelector("#place-count");
   const placeStatus = document.querySelector("#place-status");
   const placesList = document.querySelector("#places-list");
@@ -21,6 +30,7 @@
   const state = {
     regions: [],
     currentRegion: null,
+    candidateRegion: null,
     places: [],
     markers: new Map(),
     cityMarkers: [],
@@ -42,6 +52,25 @@
     } else {
       delete element.dataset.tone;
     }
+  }
+
+  function normalizeSearchText(value) {
+    return String(value ?? "")
+      .normalize("NFKC")
+      .trim()
+      .toLocaleLowerCase("en-US");
+  }
+
+  function matchingRegions(query) {
+    const normalizedQuery = normalizeSearchText(query);
+    return state.regions.filter((region) => {
+      if (!normalizedQuery) {
+        return true;
+      }
+      const name = normalizeSearchText(region.name);
+      const nameEn = normalizeSearchText(region.nameEn);
+      return name.includes(normalizedQuery) || nameEn.includes(normalizedQuery);
+    });
   }
 
   function unwrap(payload) {
@@ -227,6 +256,9 @@
         zoomControl: true,
         attributionControl: true,
       });
+      const cityMarkerPane = state.map.createPane("cityMarkers");
+      cityMarkerPane.style.zIndex = "650";
+      cityMarkerPane.style.pointerEvents = "auto";
 
       state.tileLayer = window.L.tileLayer(
         "https://webrd0{s}.is.autonavi.com/appmaptile?style=7&x={x}&y={y}&z={z}",
@@ -290,10 +322,13 @@
     name.className = "popup-name";
     name.textContent = region.name;
     detail.className = "popup-detail";
-    detail.textContent =
-      region.id === state.currentRegion?.id
-        ? `${region.nameEn || "Current city"} · 当前抽签城市`
-        : region.nameEn || "公开地图城市";
+    if (region.id === state.currentRegion?.id) {
+      detail.textContent = `${region.nameEn || "Current city"} · 当前抽签城市`;
+    } else if (region.id === state.candidateRegion?.id) {
+      detail.textContent = `${region.nameEn || "Candidate city"} · 候选城市`;
+    } else {
+      detail.textContent = region.nameEn || "公开地图城市";
+    }
     wrapper.append(name, detail);
     return wrapper;
   }
@@ -324,17 +359,30 @@
       }
 
       const isCurrent = region.id === state.currentRegion?.id;
+      const isCandidate = region.id === state.candidateRegion?.id;
+      const isSameCandidate = isCurrent && isCandidate;
       const marker = window.L.circleMarker(
         [region.center.lat, region.center.lng],
         {
-          radius: isCurrent ? 9 : 6,
+          radius: isCurrent || isCandidate ? 9 : 6,
           color: "#fffdf5",
-          weight: 2,
-          fillColor: isCurrent ? "#d95432" : "#245c46",
+          weight: isCandidate ? 3 : 2,
+          fillColor: isSameCandidate
+            ? "#d95432"
+            : isCurrent
+              ? "#d95432"
+              : isCandidate
+                ? "#f2b544"
+                : "#245c46",
           fillOpacity: 0.96,
-          className: isCurrent
-            ? "city-marker city-marker-current"
-            : "city-marker",
+          pane: "cityMarkers",
+          className: [
+            "city-marker",
+            isCurrent ? "city-marker-current" : "",
+            isCandidate ? "city-marker-candidate" : "",
+          ]
+            .filter(Boolean)
+            .join(" "),
         },
       );
       marker.bindTooltip(region.name, {
@@ -342,6 +390,7 @@
         offset: [0, -5],
       });
       marker.bindPopup(createCityPopupContent(region));
+      marker.on("click", () => openCandidate(region.id));
       marker.addTo(state.map);
       state.cityMarkers.push(marker);
     });
@@ -418,6 +467,163 @@
     state.map.invalidateSize({ pan: false });
   }
 
+  function renderSearchResults() {
+    if (!state.regions.length) {
+      return;
+    }
+
+    let matches;
+    try {
+      matches = matchingRegions(citySearch.value);
+    } catch (error) {
+      searchResults.replaceChildren();
+      searchResults.hidden = true;
+      searchStatus.hidden = false;
+      setStatus(
+        searchStatus,
+        "城市搜索暂不可用，当前城市、地点和抽签不受影响。",
+        "error",
+      );
+      return;
+    }
+
+    searchResults.replaceChildren();
+    if (!matches.length) {
+      searchResults.hidden = true;
+      searchStatus.hidden = false;
+      setStatus(searchStatus, "没有匹配的城市。");
+      return;
+    }
+
+    searchStatus.hidden = false;
+    setStatus(searchStatus, `${matches.length} 座城市`);
+    matches.forEach((region) => {
+      const isCurrent = region.id === state.currentRegion?.id;
+      const isCandidate = region.id === state.candidateRegion?.id;
+      const item = document.createElement("li");
+      const button = document.createElement("button");
+      const copy = document.createElement("span");
+      const name = document.createElement("span");
+      const nameEn = document.createElement("span");
+      const role = document.createElement("span");
+
+      item.className = "search-result-item";
+      button.className = "search-result-button";
+      if (isCandidate) {
+        button.classList.add("is-candidate");
+      }
+      button.type = "button";
+      button.dataset.cityId = region.id;
+      button.dataset.current = String(isCurrent);
+      copy.className = "search-result-copy";
+      name.className = "search-city-name";
+      name.textContent = region.name;
+      nameEn.className = "search-city-en";
+      nameEn.textContent = region.nameEn || "";
+      role.className = "search-city-role";
+      role.textContent = isCandidate
+        ? "候选城市"
+        : isCurrent
+          ? "当前城市"
+          : "预览";
+      copy.append(name, nameEn);
+      button.append(copy, role);
+      button.addEventListener("click", () => openCandidate(region.id));
+      item.append(button);
+      searchResults.append(item);
+    });
+    searchResults.hidden = false;
+  }
+
+  function updateCandidatePreview() {
+    const candidate = state.candidateRegion;
+    candidatePreview.hidden = !candidate;
+    if (!candidate) {
+      delete candidatePreview.dataset.candidateId;
+      return;
+    }
+
+    candidatePreview.dataset.candidateId = candidate.id;
+    currentCityLabel.textContent = state.currentRegion?.name || "--";
+    candidateCityLabel.textContent = candidate.name;
+  }
+
+  function openCandidate(regionId) {
+    const region = state.regions.find((candidate) => candidate.id === regionId);
+    if (!region) {
+      return;
+    }
+
+    state.candidateRegion = region;
+    state.worldViewActive = false;
+    updateCandidatePreview();
+    renderCityMarkers();
+    updateMapModeControls();
+    if (searchResults.hidden === false || citySearch.value) {
+      renderSearchResults();
+    }
+
+    if (state.map) {
+      if (state.currentRegion && state.currentRegion.id !== region.id) {
+        state.map.fitBounds(
+          [
+            regionCenter(state.currentRegion),
+            regionCenter(region),
+          ],
+          {
+            padding: [48, 48],
+            maxZoom: 6,
+            animate: false,
+          },
+        );
+      } else {
+        state.map.setView(regionCenter(region), 8, { animate: false });
+      }
+      requestAnimationFrame(() => {
+        state.map.invalidateSize({ pan: false });
+      });
+    }
+    mapCaption.textContent = `候选预览：${region.name} · 当前抽签城市：${
+      state.currentRegion?.name || "--"
+    }`;
+  }
+
+  function closeCandidate(restoreCurrentView = true) {
+    if (!state.candidateRegion) {
+      return;
+    }
+
+    state.candidateRegion = null;
+    updateCandidatePreview();
+    renderCityMarkers();
+    if (searchResults.hidden === false || citySearch.value) {
+      renderSearchResults();
+    }
+
+    if (restoreCurrentView && state.currentRegion) {
+      state.worldViewActive = false;
+      focusMap(state.currentRegion, state.places);
+      setMapCaptionForCurrentCity();
+    }
+    updateMapModeControls();
+  }
+
+  function confirmCandidate() {
+    const candidate = state.candidateRegion;
+    if (!candidate) {
+      return;
+    }
+
+    if (candidate.id === state.currentRegion?.id) {
+      closeCandidate();
+      return;
+    }
+
+    state.candidateRegion = null;
+    updateCandidatePreview();
+    selectCity(candidate.id);
+  }
+
   function updateMapModeControls() {
     worldViewButton.setAttribute(
       "aria-pressed",
@@ -451,6 +657,10 @@
       return;
     }
 
+    if (state.candidateRegion) {
+      closeCandidate(false);
+    }
+
     const points = state.regions
       .filter(
         (region) =>
@@ -478,6 +688,11 @@
 
   function returnToCurrentCity() {
     if (!state.map || !state.currentRegion) {
+      return;
+    }
+
+    if (state.candidateRegion) {
+      closeCandidate();
       return;
     }
 
@@ -558,12 +773,19 @@
     spinButton.disabled = false;
     spinButton.removeAttribute("aria-busy");
     state.currentRegion = region;
+    if (state.candidateRegion) {
+      state.candidateRegion = null;
+      updateCandidatePreview();
+    }
     state.places = [];
     state.placesError = "";
     state.worldViewActive = false;
     citySelect.value = region.id;
     clearPlaceMarkers();
     renderCityMarkers();
+    if (searchResults.hidden === false || citySearch.value) {
+      renderSearchResults();
+    }
     updateMapModeControls();
     renderPlaces();
     clearPlacesList("正在加载公开地点...");
@@ -588,7 +810,7 @@
       state.placesError = "";
       renderPlaces();
       renderMarkers();
-      if (!state.worldViewActive) {
+      if (!state.worldViewActive && !state.candidateRegion) {
         focusMap(region, state.places);
       }
 
@@ -603,7 +825,7 @@
         setStatus(globalStatus, "地点清单为空，仍可尝试随机抽签。");
       }
 
-      if (!state.worldViewActive) {
+      if (!state.worldViewActive && !state.candidateRegion) {
         setMapCaptionForCurrentCity();
       }
     } catch (error) {
@@ -623,7 +845,7 @@
         "error",
       );
       setStatus(globalStatus, "地点清单暂时不可用，抽签入口保持开放。", "error");
-      if (!state.worldViewActive) {
+      if (!state.worldViewActive && !state.candidateRegion) {
         setMapCaptionForCurrentCity();
         focusMap(region);
       }
@@ -698,6 +920,7 @@
     });
     cityCount.textContent = `${regions.length} 城`;
     citySelect.disabled = false;
+    citySearch.disabled = false;
     spinButton.disabled = false;
     updateMapModeControls();
   }
@@ -705,10 +928,20 @@
   async function init() {
     initializeMap();
     citySelect.addEventListener("change", () => selectCity(citySelect.value));
+    citySearch.addEventListener("focus", renderSearchResults);
+    citySearch.addEventListener("input", renderSearchResults);
     spinButton.addEventListener("click", spin);
     worldViewButton.addEventListener("click", showWorldView);
     returnCityButton.addEventListener("click", returnToCurrentCity);
+    confirmCityButton.addEventListener("click", confirmCandidate);
+    cancelCityButton.addEventListener("click", () => closeCandidate());
+    closeCandidateButton.addEventListener("click", () => closeCandidate());
     document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && state.candidateRegion) {
+        event.preventDefault();
+        closeCandidate();
+        return;
+      }
       if (
         event.code !== "Space" ||
         event.repeat ||

@@ -173,6 +173,7 @@ async function openPage(browser, viewport, options) {
       apiRequests.push({
         method: request.method(),
         pathname,
+        body: request.postData() || "",
       });
     }
   });
@@ -423,14 +424,6 @@ const tests = [
         fullPage: true,
       });
 
-      await page.locator(".city-marker").nth(5).click();
-      await page.waitForFunction(
-        () => document.querySelector(".popup-name")?.textContent === "东京",
-      );
-      assert.equal(await page.locator("#city-select").inputValue(), selectedCity);
-      assert.equal(apiRequests.length, 0);
-      await page.locator(".leaflet-popup-close-button").click();
-
       await dragMapWithMouse(page, 130, 70);
       const draggedState = await mapState(page);
       assert.ok(
@@ -468,7 +461,6 @@ const tests = [
             result: "北京烤鸭",
             actions: [
               "open-world-view",
-              "open-tokyo-city-marker-popup",
               "desktop-drag",
               "desktop-wheel-zoom",
               "return-to-current-city",
@@ -761,6 +753,795 @@ const tests = [
         path.join(outputDir, "delayed-world-view-race.json"),
         `${JSON.stringify(evidence, null, 2)}\n`,
       );
+    },
+  },
+  {
+    name: "city search follows normalization rules without side effects",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1440, height: 1000 },
+        {},
+      );
+      const searchExamples = [];
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+      await page.waitForSelector("#city-search:not([disabled])");
+
+      await page.locator("#spin-button").click();
+      await page.waitForFunction(
+        () => document.querySelector("#result-name")?.textContent === "北京烤鸭",
+      );
+      await page.waitForSelector(".leaflet-popup-close-button");
+      await page.locator(".leaflet-popup-close-button").click();
+
+      const selectedCity = await page.locator("#city-select").inputValue();
+      const placesText = await page.locator("#places-list").textContent();
+      apiRequests.length = 0;
+
+      await page.locator("#city-search").focus();
+      await page.waitForFunction(
+        () => document.querySelectorAll(".search-result-button").length === 9,
+      );
+      assert.deepEqual(
+        await page
+          .locator(".search-result-button")
+          .evaluateAll((buttons) => buttons.map((button) => button.dataset.cityId)),
+        [
+          "beijing",
+          "shanghai",
+          "guangzhou",
+          "chengdu",
+          "xian",
+          "tokyo",
+          "singapore",
+          "berlin",
+          "new-york",
+        ],
+      );
+
+      await page.locator("#city-search").fill(" 东 ");
+      await page.waitForFunction(
+        () => document.querySelectorAll(".search-result-button").length === 1,
+      );
+      assert.match(
+        await page.locator(".search-result-button").textContent(),
+        /东京.*Tokyo/,
+      );
+      searchExamples.push({
+        query: " 东 ",
+        resultIds: await page
+          .locator(".search-result-button")
+          .evaluateAll((buttons) => buttons.map((button) => button.dataset.cityId)),
+      });
+
+      await page.locator("#city-search").fill("tok");
+      await page.waitForFunction(
+        () => document.querySelectorAll(".search-result-button").length === 1,
+      );
+      assert.equal(
+        await page.locator(".search-result-button").getAttribute("data-city-id"),
+        "tokyo",
+      );
+      searchExamples.push({
+        query: "tok",
+        resultIds: await page
+          .locator(".search-result-button")
+          .evaluateAll((buttons) => buttons.map((button) => button.dataset.cityId)),
+      });
+      await page.screenshot({
+        path: path.join(outputDir, "city-search.png"),
+        fullPage: true,
+      });
+
+      await page.locator("#city-search").fill("NEW");
+      await page.waitForFunction(
+        () =>
+          document.querySelector(".search-result-button")?.dataset.cityId ===
+          "new-york",
+      );
+      searchExamples.push({ query: "NEW", resultIds: ["new-york"] });
+      await page.locator("#city-search").fill("york");
+      await page.waitForFunction(
+        () =>
+          document.querySelector(".search-result-button")?.dataset.cityId ===
+          "new-york",
+      );
+      searchExamples.push({ query: "york", resultIds: ["new-york"] });
+      await page.locator("#city-search").fill("ｔｏｋ");
+      await page.waitForFunction(
+        () =>
+          document.querySelector(".search-result-button")?.dataset.cityId ===
+          "tokyo",
+      );
+      searchExamples.push({ query: "ｔｏｋ", resultIds: ["tokyo"] });
+
+      await page.locator("#city-search").fill("no-such-city");
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector("#search-status")
+            ?.textContent.includes("没有匹配的城市"),
+      );
+      assert.equal(await page.locator("#city-search-results").isVisible(), false);
+      assert.equal(await page.locator("#city-select").inputValue(), selectedCity);
+      assert.equal(await page.locator("#places-list").textContent(), placesText);
+      assert.equal(await page.locator("#result-name").textContent(), "北京烤鸭");
+      assert.equal(apiRequests.length, 0);
+
+      await page.evaluate(() => {
+        window.__normalize = String.prototype.normalize;
+        String.prototype.normalize = () => {
+          throw new Error("search index unavailable");
+        };
+      });
+      await page.locator("#city-search").fill("tok");
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector("#search-status")
+            ?.textContent.includes("城市搜索暂不可用"),
+      );
+      assert.equal(await page.locator("#city-search-results").isVisible(), false);
+      assert.equal(await page.locator("#spin-button").isEnabled(), true);
+      assert.equal(apiRequests.length, 0);
+
+      await page.evaluate(() => {
+        String.prototype.normalize = window.__normalize;
+        delete window.__normalize;
+      });
+      await page.locator("#city-search").fill("");
+      await page.locator("#city-search").fill("tok");
+      await page.waitForFunction(
+        () =>
+          document.querySelector(".search-result-button")?.dataset.cityId ===
+          "tokyo",
+      );
+      await fs.writeFile(
+        path.join(outputDir, "city-search-results.json"),
+        `${JSON.stringify(
+          {
+            examples: searchExamples,
+            noMatch: "no-such-city",
+            searchIndexFailure: "城市搜索暂不可用",
+            apiRequests,
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "candidate preview stays local across cancel, escape, and return",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1440, height: 1000 },
+        {},
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+      await page.waitForSelector("#city-search:not([disabled])");
+
+      const selectedCity = await page.locator("#city-select").inputValue();
+      const placesText = await page.locator("#places-list").textContent();
+      const resultBefore = await page.locator("#result-name").textContent();
+      apiRequests.length = 0;
+
+      await page.locator("#city-search").focus();
+      await page.locator("#city-search").fill("tok");
+      await page.waitForFunction(
+        () =>
+          document.querySelector(".search-result-button")?.dataset.cityId ===
+          "tokyo",
+      );
+      await page.locator('.search-result-button[data-city-id="tokyo"]').click();
+      await page.waitForFunction(
+        () => !document.querySelector("#candidate-preview")?.hidden,
+      );
+
+      assert.equal(
+        await page.locator("#candidate-preview").getAttribute("data-candidate-id"),
+        "tokyo",
+      );
+      assert.equal(
+        await page.locator("#current-city-label").textContent(),
+        "北京",
+      );
+      assert.equal(
+        await page.locator("#candidate-city-label").textContent(),
+        "东京",
+      );
+      assert.match(
+        await page.locator("#map-caption").textContent(),
+        /候选预览：东京/,
+      );
+      assert.equal(await page.locator("#city-select").inputValue(), selectedCity);
+      assert.equal(await page.locator("#places-list").textContent(), placesText);
+      assert.equal(await page.locator("#result-name").textContent(), resultBefore);
+      assert.equal(await page.locator(".city-marker-current").count(), 1);
+      assert.equal(await page.locator(".city-marker-candidate").count(), 1);
+      assert.equal(apiRequests.length, 0);
+      await page.screenshot({
+        path: path.join(outputDir, "candidate-preview.png"),
+        fullPage: true,
+      });
+
+      await page.locator("#spin-button").click();
+      await page.waitForFunction(
+        () => document.querySelector("#result-name")?.textContent === "北京烤鸭",
+      );
+      const spinRequest = apiRequests.find(
+        (request) => request.pathname === "/api/spin",
+      );
+      assert.equal(JSON.parse(spinRequest.body).regionId, "beijing");
+      await page.waitForSelector(".leaflet-popup-close-button");
+      await page.locator(".leaflet-popup-close-button").click();
+
+      const requestsBeforeCancel = apiRequests.length;
+      await page.locator("#cancel-city-button").click();
+      await page.waitForFunction(
+        () => document.querySelector("#candidate-preview")?.hidden === true,
+      );
+      assert.equal(await page.locator("#city-select").inputValue(), selectedCity);
+      assert.equal(await page.locator("#places-list").textContent(), placesText);
+      assert.equal(apiRequests.length, requestsBeforeCancel);
+      assert.match(await page.locator("#map-caption").textContent(), /北京/);
+
+      await page.locator("#world-view-button").click();
+      await page.waitForFunction(
+        () => Number(document.querySelector("#map").dataset.zoom) <= 3,
+      );
+      await page.locator(".city-marker").nth(5).click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#candidate-preview")?.dataset.candidateId ===
+          "tokyo",
+      );
+      assert.equal(await page.locator("#city-select").inputValue(), selectedCity);
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(
+        () => document.querySelector("#candidate-preview")?.hidden === true,
+      );
+      assert.match(await page.locator("#map-caption").textContent(), /北京/);
+
+      await page.locator("#city-search").fill("tok");
+      await page.locator('.search-result-button[data-city-id="tokyo"]').click();
+      await page.waitForFunction(
+        () => !document.querySelector("#candidate-preview")?.hidden,
+      );
+      const requestsBeforeClose = apiRequests.length;
+      await page.locator("#close-candidate-button").click();
+      await page.waitForFunction(
+        () => document.querySelector("#candidate-preview")?.hidden === true,
+      );
+      assert.equal(apiRequests.length, requestsBeforeClose);
+
+      await page.locator("#city-search").fill("tok");
+      await page.locator('.search-result-button[data-city-id="tokyo"]').click();
+      await page.waitForFunction(
+        () => !document.querySelector("#candidate-preview")?.hidden,
+      );
+      const requestsBeforeReturn = apiRequests.length;
+      await page.locator("#return-city-button").click();
+      await page.waitForFunction(
+        () => document.querySelector("#candidate-preview")?.hidden === true,
+      );
+      assert.equal(await page.locator("#city-select").inputValue(), selectedCity);
+      assert.equal(await page.locator("#places-list").textContent(), placesText);
+      assert.equal(await page.locator("#result-name").textContent(), "北京烤鸭");
+      assert.equal(apiRequests.length, requestsBeforeReturn);
+      await fs.writeFile(
+        path.join(outputDir, "candidate-preview-network.json"),
+        `${JSON.stringify(
+          {
+            selectedCity,
+            actions: [
+              "open-from-search",
+              "spin-current-city",
+              "cancel",
+              "open-from-city-marker",
+              "escape",
+              "close",
+              "reopen",
+              "return-to-current-city",
+            ],
+            apiRequests,
+            placeRequests: apiRequests.filter((request) =>
+              request.pathname.endsWith("/places"),
+            ),
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "candidate confirmation switches once and resets lunch state",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        {},
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+      await page.waitForSelector("#city-search:not([disabled])");
+
+      await page.locator("#spin-button").click();
+      await page.waitForFunction(
+        () => document.querySelector("#result-name")?.textContent === "北京烤鸭",
+      );
+      await page.waitForSelector(".leaflet-popup-close-button");
+      await page.locator(".leaflet-popup-close-button").click();
+      apiRequests.length = 0;
+
+      await page.locator("#city-search").focus();
+      await page.locator("#city-search").fill("tok");
+      await page.locator('.search-result-button[data-city-id="tokyo"]').click();
+      await page.waitForFunction(
+        () => !document.querySelector("#candidate-preview")?.hidden,
+      );
+      assert.equal(apiRequests.length, 0);
+      await page.locator("#confirm-city-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#city-select")?.value === "tokyo" &&
+          document.querySelector("#places-list")?.textContent.includes("築地場外市場"),
+      );
+
+      assert.equal(await page.locator("#candidate-preview").isVisible(), false);
+      assert.equal(
+        await page.locator("#result-name").textContent(),
+        "先抽一个地点",
+      );
+      assert.match(
+        await page.locator("#result-meta").textContent(),
+        /当前城市：东京/,
+      );
+      assert.equal(await page.locator(".place-marker-icon").count(), 5);
+      assert.equal(await page.locator(".city-marker-current").count(), 1);
+      assert.equal(await page.locator(".city-marker-candidate").count(), 0);
+      assert.deepEqual(
+        apiRequests
+          .filter((request) => request.pathname.endsWith("/places"))
+          .map((request) => request.pathname),
+        ["/api/regions/tokyo/places"],
+      );
+
+      const requestCountBeforeSameCity = apiRequests.length;
+      await page.locator("#city-search").fill("tok");
+      await page.locator('.search-result-button[data-city-id="tokyo"]').click();
+      await page.waitForFunction(
+        () => !document.querySelector("#candidate-preview")?.hidden,
+      );
+      await page.locator("#confirm-city-button").click();
+      await page.waitForFunction(
+        () => document.querySelector("#candidate-preview")?.hidden === true,
+      );
+      assert.equal(await page.locator("#city-select").inputValue(), "tokyo");
+      assert.equal(apiRequests.length, requestCountBeforeSameCity);
+      await fs.writeFile(
+        path.join(outputDir, "candidate-confirm-network.json"),
+        `${JSON.stringify(
+          {
+            confirmedCity: "tokyo",
+            sameCityConfirmation: "no-op",
+            placeRequests: apiRequests.filter((request) =>
+              request.pathname.endsWith("/places"),
+            ),
+            requestsAfterSameCityConfirmation:
+              apiRequests.length - requestCountBeforeSameCity,
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      await page.screenshot({
+        path: path.join(outputDir, "candidate-confirm.png"),
+        fullPage: true,
+      });
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "rapid confirms keep the latest city only",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { delayByRegion: { tokyo: 800, singapore: 100 } },
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+      await page.waitForSelector("#city-search:not([disabled])");
+      apiRequests.length = 0;
+
+      await page.locator("#city-search").focus();
+      await page.locator("#city-search").fill("tok");
+      await page.locator('.search-result-button[data-city-id="tokyo"]').click();
+      await page.locator("#confirm-city-button").click();
+      await page.locator("#city-search").fill("sing");
+      await page.locator('.search-result-button[data-city-id="singapore"]').click();
+      await page.locator("#confirm-city-button").click();
+
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#city-select")?.value === "singapore" &&
+          document.querySelector("#places-list")?.textContent.includes("老巴刹"),
+      );
+      await page.waitForTimeout(900);
+
+      assert.equal(await page.locator("#city-select").inputValue(), "singapore");
+      assert.match(await page.locator("#map-caption").textContent(), /新加坡/);
+      assert.doesNotMatch(
+        await page.locator("#places-list").textContent(),
+        /築地場外市場/,
+      );
+      assert.deepEqual(
+        apiRequests
+          .filter((request) => request.pathname.endsWith("/places"))
+          .map((request) => request.pathname),
+        [
+          "/api/regions/tokyo/places",
+          "/api/regions/singapore/places",
+        ],
+      );
+      await fs.writeFile(
+        path.join(outputDir, "candidate-confirm-race.json"),
+        `${JSON.stringify(
+          {
+            confirmOrder: ["tokyo", "singapore"],
+            finalCity: "singapore",
+            placeRequests: apiRequests.filter((request) =>
+              request.pathname.endsWith("/places"),
+            ),
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "world view survives a pending candidate confirmation",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { delayByRegion: { tokyo: 900 } },
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+      await page.waitForSelector("#city-search:not([disabled])");
+
+      await page.locator("#city-search").focus();
+      await page.locator("#city-search").fill("tok");
+      await page.locator('.search-result-button[data-city-id="tokyo"]').click();
+      await page.locator("#confirm-city-button").click();
+      await page.locator("#world-view-button").click();
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector("#world-view-button")
+            ?.getAttribute("aria-pressed") === "true" &&
+          Number(document.querySelector("#map").dataset.zoom) <= 3,
+      );
+
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector("#place-status")
+            ?.textContent.includes("已加载 5 个公开地点"),
+      );
+      assert.equal(await page.locator("#city-select").inputValue(), "tokyo");
+      assert.equal(
+        await page
+          .locator("#world-view-button")
+          .getAttribute("aria-pressed"),
+        "true",
+      );
+      assert.ok((await mapState(page)).zoom <= 3);
+      assert.match(
+        await page.locator("#map-caption").textContent(),
+        /世界视图 · 抽签城市：东京/,
+      );
+      assert.match(
+        await page.locator("#places-list").textContent(),
+        /築地場外市場/,
+      );
+      await fs.writeFile(
+        path.join(outputDir, "candidate-confirm-world-view.json"),
+        `${JSON.stringify(
+          {
+            confirmedCity: "tokyo",
+            finalMap: await mapState(page),
+            worldViewActive:
+              await page
+                .locator("#world-view-button")
+                .getAttribute("aria-pressed"),
+            apiRequests,
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      await page.screenshot({
+        path: path.join(outputDir, "world-view-pending-confirm.png"),
+        fullPage: true,
+      });
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "candidate confirmation failure keeps the new city and remains usable",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { failPlaces: ["tokyo"] },
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+      await page.waitForSelector("#city-search:not([disabled])");
+
+      await page.locator(".place-button").first().click();
+      await page.waitForSelector(".leaflet-popup");
+      apiRequests.length = 0;
+
+      await page.locator("#city-search").focus();
+      await page.locator("#city-search").fill("tok");
+      await page.locator('.search-result-button[data-city-id="tokyo"]').click();
+      await page.locator("#confirm-city-button").click();
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector("#place-status")
+            ?.textContent.includes("地点加载失败"),
+      );
+
+      assert.equal(await page.locator("#city-select").inputValue(), "tokyo");
+      assert.equal(await page.locator("#candidate-preview").isVisible(), false);
+      assert.equal(await page.locator(".place-marker-icon").count(), 0);
+      assert.equal(await page.locator(".city-marker-current").count(), 1);
+      assert.equal(await page.locator(".leaflet-popup").count(), 0);
+      assert.equal(await page.locator("#map-fallback").isVisible(), true);
+      assert.equal(await page.locator("#spin-button").isEnabled(), true);
+
+      await page.locator("#spin-button").click();
+      await page.waitForFunction(
+        () => document.querySelector("#result-name")?.textContent === "築地場外市場",
+      );
+      const spinRequest = apiRequests.find(
+        (request) => request.pathname === "/api/spin",
+      );
+      assert.equal(JSON.parse(spinRequest.body).regionId, "tokyo");
+      assert.equal(await page.locator("#city-search").isEnabled(), true);
+      await fs.writeFile(
+        path.join(outputDir, "candidate-confirm-failure.json"),
+        `${JSON.stringify(
+          {
+            confirmedCity: "tokyo",
+            placesFailed: true,
+            spinRequest: JSON.parse(spinRequest.body),
+            apiRequests,
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      await page.screenshot({
+        path: path.join(outputDir, "candidate-confirm-failure.png"),
+        fullPage: true,
+      });
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "delayed current places response does not close a candidate preview",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { delayByRegion: { beijing: 1200 } },
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await page.waitForSelector("#city-search:not([disabled])");
+
+      await page.locator("#city-search").focus();
+      await page.locator("#city-search").fill("tok");
+      await page.locator('.search-result-button[data-city-id="tokyo"]').click();
+      await page.waitForFunction(
+        () => !document.querySelector("#candidate-preview")?.hidden,
+      );
+      const previewState = await mapState(page);
+      assert.equal(await page.locator(".city-marker-current").count(), 1);
+      assert.equal(await page.locator(".city-marker-candidate").count(), 1);
+
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector("#place-status")
+            ?.textContent.includes("已加载 5 个公开地点"),
+      );
+      assert.equal(
+        await page.locator("#candidate-preview").getAttribute("data-candidate-id"),
+        "tokyo",
+      );
+      assert.equal(await page.locator("#city-select").inputValue(), "beijing");
+      assert.match(
+        await page.locator("#map-caption").textContent(),
+        /候选预览：东京 · 当前抽签城市：北京/,
+      );
+      const previewAfterResponse = await mapState(page);
+      assert.ok(Math.abs(previewAfterResponse.lat - previewState.lat) < 0.01);
+      assert.ok(Math.abs(previewAfterResponse.lng - previewState.lng) < 0.01);
+      assert.equal(previewAfterResponse.zoom, previewState.zoom);
+      assert.equal(
+        apiRequests.some((request) =>
+          request.pathname.includes("/regions/tokyo/places"),
+        ),
+        false,
+      );
+      await fs.writeFile(
+        path.join(outputDir, "candidate-delayed-current-network.json"),
+        `${JSON.stringify(
+          {
+            candidate: "tokyo",
+            currentCity: "beijing",
+            previewState,
+            previewAfterPlacesResponse: previewAfterResponse,
+            apiRequests,
+          },
+          null,
+          2,
+        )}\n`,
+      );
+
+      await page.locator("#cancel-city-button").click();
+      await page.waitForFunction(
+        () => document.querySelector("#candidate-preview")?.hidden === true,
+      );
+      const returnedState = await mapState(page);
+      assert.ok(Math.abs(returnedState.lat - 39.9042) < 1);
+      assert.ok(Math.abs(returnedState.lng - 116.4074) < 1);
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "tile failure keeps city discovery usable",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { failTiles: true },
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+      await page.waitForSelector("#city-search:not([disabled])");
+      await page.waitForFunction(
+        () => !document.querySelector("#map-fallback")?.hidden,
+      );
+      apiRequests.length = 0;
+
+      await page.locator("#city-search").focus();
+      await page.locator("#city-search").fill("tok");
+      await page.locator('.search-result-button[data-city-id="tokyo"]').click();
+      assert.equal(await page.locator("#candidate-preview").isVisible(), true);
+      assert.equal(
+        intersectionArea(
+          await page.locator("#candidate-preview").boundingBox(),
+          await page.locator("#map-fallback").boundingBox(),
+        ),
+        0,
+      );
+      assert.equal(apiRequests.length, 0);
+      await page.locator("#cancel-city-button").click();
+
+      await page.locator("#spin-button").click();
+      await page.waitForFunction(
+        () => document.querySelector("#result-name")?.textContent === "北京烤鸭",
+      );
+      await page.waitForSelector(".leaflet-popup-close-button");
+      await page.locator(".leaflet-popup-close-button").click();
+
+      await page.locator("#city-search").fill("tok");
+      await page.locator('.search-result-button[data-city-id="tokyo"]').click();
+      await page.locator("#confirm-city-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#city-select")?.value === "tokyo" &&
+          document.querySelector("#places-list")?.textContent.includes("築地場外市場"),
+      );
+      assert.equal(await page.locator("#map-fallback").isVisible(), true);
+      assert.equal(await page.locator("#city-search").isEnabled(), true);
+      assert.equal(await page.locator("#spin-button").isEnabled(), true);
+      await page.screenshot({
+        path: path.join(outputDir, "tile-failure-city-discovery.png"),
+        fullPage: true,
+      });
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "mobile city discovery supports cancel and confirm",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 390, height: 844 },
+        {},
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+      await page.waitForSelector("#city-search:not([disabled])");
+      await assertNoOverflow(page);
+      apiRequests.length = 0;
+
+      await page.locator("#city-search").tap();
+      await page.locator("#city-search").fill("tok");
+      await page.locator('.search-result-button[data-city-id="tokyo"]').tap();
+      await page.waitForFunction(
+        () => !document.querySelector("#candidate-preview")?.hidden,
+      );
+      await assertNoOverflow(page);
+      await page.screenshot({
+        path: path.join(outputDir, "mobile-candidate-preview.png"),
+        fullPage: true,
+      });
+      assert.equal(await page.locator("#city-select").inputValue(), "beijing");
+      assert.equal(apiRequests.length, 0);
+      await page.locator("#cancel-city-button").tap();
+      await page.waitForFunction(
+        () => document.querySelector("#candidate-preview")?.hidden === true,
+      );
+      assert.equal(await page.locator("#city-select").inputValue(), "beijing");
+
+      await page.locator("#city-search").fill("tok");
+      await page.locator('.search-result-button[data-city-id="tokyo"]').tap();
+      await page.locator("#confirm-city-button").tap();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#city-select")?.value === "tokyo" &&
+          document.querySelector("#places-list")?.textContent.includes("築地場外市場"),
+      );
+      await page.locator("#return-city-button").tap();
+      await assertNoOverflow(page);
+      await page.screenshot({
+        path: path.join(outputDir, "mobile-city-discovery.png"),
+        fullPage: true,
+      });
+      assert.deepEqual(pageErrors, []);
+      await context.close();
     },
   },
   {
