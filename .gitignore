@@ -1,0 +1,8 @@
+node_modules/
+playwright-report/
+*.log
+*.png
+*.jpg
+*.jpeg
+*.webp
+.DS_Store

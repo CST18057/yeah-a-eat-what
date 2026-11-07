@@ -1,0 +1,87 @@
+{
+  "id": "beijing",
+  "name": "北京",
+  "nameEn": "Beijing",
+  "center": {
+    "lat": 39.9057136,
+    "lng": 116.3912972
+  },
+  "source": {
+    "provider": "OpenStreetMap",
+    "type": "relation",
+    "id": 912940,
+    "url": "https://www.openstreetmap.org/relation/912940"
+  },
+  "places": [
+    {
+      "id": "beijing-guijie",
+      "name": "簋街",
+      "cuisine": "京味小吃",
+      "address": "东城区东直门内大街",
+      "lat": 39.9396065,
+      "lng": 116.4232641,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 701332264,
+        "url": "https://www.openstreetmap.org/way/701332264"
+      }
+    },
+    {
+      "id": "beijing-qianmen",
+      "name": "前门大街",
+      "cuisine": "老字号美食",
+      "address": "东城区前门大街",
+      "lat": 39.8937104,
+      "lng": 116.3919465,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 9779112,
+        "url": "https://www.openstreetmap.org/way/9779112"
+      }
+    },
+    {
+      "id": "beijing-wangfujing",
+      "name": "王府井小吃街",
+      "cuisine": "北京小吃",
+      "address": "东城区王府井大街",
+      "lat": 39.9098345,
+      "lng": 116.4047354,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "node",
+        "id": 4225970395,
+        "url": "https://www.openstreetmap.org/node/4225970395"
+      }
+    },
+    {
+      "id": "beijing-nanluoguxiang",
+      "name": "南锣鼓巷",
+      "cuisine": "胡同小吃",
+      "address": "东城区南锣鼓巷",
+      "lat": 39.9323094,
+      "lng": 116.3976888,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "node",
+        "id": 6497773831,
+        "url": "https://www.openstreetmap.org/node/6497773831"
+      }
+    },
+    {
+      "id": "beijing-niujie",
+      "name": "牛街",
+      "cuisine": "清真美食",
+      "address": "西城区牛街",
+      "lat": 39.8841912,
+      "lng": 116.3573462,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 161802280,
+        "url": "https://www.openstreetmap.org/way/161802280"
+      }
+    }
+  ]
+}

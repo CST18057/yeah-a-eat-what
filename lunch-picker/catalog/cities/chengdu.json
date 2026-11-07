@@ -1,0 +1,87 @@
+{
+  "id": "chengdu",
+  "name": "成都",
+  "nameEn": "Chengdu",
+  "center": {
+    "lat": 30.659867,
+    "lng": 104.063315
+  },
+  "source": {
+    "provider": "OpenStreetMap",
+    "type": "relation",
+    "id": 2110264,
+    "url": "https://www.openstreetmap.org/relation/2110264"
+  },
+  "places": [
+    {
+      "id": "chengdu-kuanzhai",
+      "name": "宽窄巷子",
+      "cuisine": "川味小吃",
+      "address": "青羊区宽窄巷子",
+      "lat": 30.6677721,
+      "lng": 104.0479169,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "node",
+        "id": 5451167240,
+        "url": "https://www.openstreetmap.org/node/5451167240"
+      }
+    },
+    {
+      "id": "chengdu-jinli",
+      "name": "锦里",
+      "cuisine": "成都小吃",
+      "address": "武侯区武侯祠大街",
+      "lat": 30.6487093,
+      "lng": 104.0473904,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 837197354,
+        "url": "https://www.openstreetmap.org/way/837197354"
+      }
+    },
+    {
+      "id": "chengdu-chunxilu",
+      "name": "春熙路",
+      "cuisine": "火锅与川菜",
+      "address": "锦江区春熙路",
+      "lat": 30.6591874,
+      "lng": 104.0752984,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 243328355,
+        "url": "https://www.openstreetmap.org/way/243328355"
+      }
+    },
+    {
+      "id": "chengdu-yulin-west-road",
+      "name": "玉林西路",
+      "cuisine": "社区川菜",
+      "address": "武侯区玉林西路",
+      "lat": 30.6318316,
+      "lng": 104.0535541,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 100289006,
+        "url": "https://www.openstreetmap.org/way/100289006"
+      }
+    },
+    {
+      "id": "chengdu-jianshe-road",
+      "name": "建设路",
+      "cuisine": "夜市小吃",
+      "address": "成华区建设路",
+      "lat": 30.6730158,
+      "lng": 104.1061932,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 193434054,
+        "url": "https://www.openstreetmap.org/way/193434054"
+      }
+    }
+  ]
+}

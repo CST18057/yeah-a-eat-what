@@ -1,0 +1,87 @@
+{
+  "id": "guangzhou",
+  "name": "广州",
+  "nameEn": "Guangzhou",
+  "center": {
+    "lat": 23.1288429,
+    "lng": 113.2589581
+  },
+  "source": {
+    "provider": "OpenStreetMap",
+    "type": "relation",
+    "id": 3287346,
+    "url": "https://www.openstreetmap.org/relation/3287346"
+  },
+  "places": [
+    {
+      "id": "guangzhou-shangxiajiu",
+      "name": "上下九步行街",
+      "cuisine": "西关小吃",
+      "address": "荔湾区上下九步行街",
+      "lat": 23.1176694,
+      "lng": 113.242735,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 948101452,
+        "url": "https://www.openstreetmap.org/way/948101452"
+      }
+    },
+    {
+      "id": "guangzhou-cantontower",
+      "name": "广州塔",
+      "cuisine": "珠江夜景美食",
+      "address": "海珠区阅江西路",
+      "lat": 23.1090145,
+      "lng": 113.3191477,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 584204634,
+        "url": "https://www.openstreetmap.org/way/584204634"
+      }
+    },
+    {
+      "id": "guangzhou-chenjiaci",
+      "name": "陈家祠",
+      "cuisine": "岭南点心",
+      "address": "荔湾区陈家祠道",
+      "lat": 23.1298279,
+      "lng": 113.2401325,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 520935699,
+        "url": "https://www.openstreetmap.org/way/520935699"
+      }
+    },
+    {
+      "id": "guangzhou-yuexiu-park",
+      "name": "越秀公园",
+      "cuisine": "广式早茶",
+      "address": "越秀区解放北路",
+      "lat": 23.1425136,
+      "lng": 113.2604084,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 255622888,
+        "url": "https://www.openstreetmap.org/way/255622888"
+      }
+    },
+    {
+      "id": "guangzhou-beijing-road",
+      "name": "北京路",
+      "cuisine": "老广风味",
+      "address": "越秀区北京路",
+      "lat": 23.1216404,
+      "lng": 113.2650231,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 497410695,
+        "url": "https://www.openstreetmap.org/way/497410695"
+      }
+    }
+  ]
+}

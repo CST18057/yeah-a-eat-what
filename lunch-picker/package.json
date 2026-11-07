@@ -1,0 +1,21 @@
+{
+  "name": "lunch-picker",
+  "version": "0.2.2",
+  "private": true,
+  "description": "A small city lunch picker with Leaflet place markers",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test server.test.js",
+    "test:browser": "node browser-check.js",
+    "postinstall": "playwright install chromium"
+  },
+  "dependencies": {
+    "leaflet": "1.9.4"
+  },
+  "devDependencies": {
+    "playwright": "1.65.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
