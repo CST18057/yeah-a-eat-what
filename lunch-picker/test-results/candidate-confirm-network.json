@@ -1,0 +1,12 @@
+{
+  "confirmedCity": "tokyo",
+  "sameCityConfirmation": "no-op",
+  "placeRequests": [
+    {
+      "method": "GET",
+      "pathname": "/api/regions/tokyo/places",
+      "body": ""
+    }
+  ],
+  "requestsAfterSameCityConfirmation": 0
+}

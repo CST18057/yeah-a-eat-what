@@ -1,7 +1,7 @@
 # Lunch Picker
 
-清空缺失源码后重建的 v0.3.0 基线。应用提供 9 个城市、43 个
-OpenStreetMap 公开地点、Leaflet 世界地图、地点清单和随机午餐抽签。
+v0.4.0 的城市发现版本。应用提供 9 个城市、43 个 OpenStreetMap 公开地点、
+Leaflet 世界地图、城市搜索与候选预览、地点清单和随机午餐抽签。
 
 ## Run
 
@@ -23,10 +23,9 @@ git diff --check
 
 `npm test` covers the nine-city catalog, API contract, static assets, invalid
 requests, repeated requests, and deterministic random selection. The browser
-suite covers desktop and mobile flows, cross-continent map browsing, desktop
-wheel zoom, mobile pinch zoom, city/location linkage, request ordering, places
-failure cleanup, pending-spin invalidation, and unobstructed tile-failure
-fallbacks.
+suite covers desktop and mobile flows, cross-continent map browsing, city search
+normalization, candidate preview/confirm/cancel, request ordering, places
+failure cleanup, pending-spin invalidation, and tile-failure fallbacks.
 
 Playwright downloads Chromium during `npm ci`. On a minimal Linux host, install
 the browser's system libraries once with:
@@ -59,19 +58,28 @@ listings or a real-time availability feed.
 
 - The map opens on the current lunch city.
 - `世界视图` fits all nine city markers; `回到抽签城市` restores the current city.
-- Dragging, wheel zoom, pinch zoom, and city-marker popups only browse the map.
-  They do not change the city, place list, or spin result, and they do not request
-  `/places` or `/api/spin`.
+- City search filters the local nine-city catalog by Chinese `name` or English
+  `nameEn`. Queries are trimmed and NFKC-normalized; English matching is
+  case-insensitive. Empty queries show the complete catalog in source order.
+- Clicking a search result or city marker opens a candidate preview. The current
+  city and candidate are labeled and marked separately.
+- Preview, cancel, close, Escape, and return do not change the city, place list,
+  or spin result and do not request `/places` or `/api/spin`.
+- Only `确认切换` commits a different candidate and requests its places exactly
+  once. Confirming the current city only closes the preview.
 - If a city's places response arrives after the user opens world view, markers
   and list state update without moving the map or replacing the world-view
   caption.
-- Changing the city selector is the explicit action that updates the map center,
-  places request, and current lunch city together.
+- A pending places response cannot close a candidate preview or overwrite its
+  map caption.
 
 ## Failure Behavior
 
 - If places fail to load, the current city remains selected, all old markers and
   popups are removed immediately, and the map and list show a clear fallback.
+- Search and preview remain available when places or map tiles fail.
+- If search normalization/filtering fails, the UI reports `城市搜索暂不可用`
+  without disabling the current city, places, return action, or spin.
 - Region switching and random selection stay available when places are missing.
 - Only the latest city response can update the interface.
 - A pending spin is discarded if the user changes city before it returns.

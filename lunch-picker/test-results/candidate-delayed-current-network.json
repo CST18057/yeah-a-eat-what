@@ -1,0 +1,26 @@
+{
+  "candidate": "tokyo",
+  "currentCity": "beijing",
+  "previewState": {
+    "zoom": 4,
+    "lat": 37.82046,
+    "lng": 128.02885
+  },
+  "previewAfterPlacesResponse": {
+    "zoom": 4,
+    "lat": 37.82046,
+    "lng": 128.02885
+  },
+  "apiRequests": [
+    {
+      "method": "GET",
+      "pathname": "/api/regions",
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/regions/beijing/places",
+      "body": ""
+    }
+  ]
+}

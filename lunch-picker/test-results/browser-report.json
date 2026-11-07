@@ -2,51 +2,96 @@
   {
     "name": "desktop core flow",
     "status": "passed",
-    "durationMs": 553
+    "durationMs": 489
   },
   {
     "name": "mobile core flow",
     "status": "passed",
-    "durationMs": 335
+    "durationMs": 323
   },
   {
     "name": "desktop world browsing does not change lunch state",
     "status": "passed",
-    "durationMs": 1753
+    "durationMs": 1538
   },
   {
     "name": "mobile world browsing supports pinch and return",
     "status": "passed",
-    "durationMs": 1130
+    "durationMs": 1131
   },
   {
     "name": "four new cities switch map and places coherently",
     "status": "passed",
-    "durationMs": 889
+    "durationMs": 854
   },
   {
     "name": "delayed places responses preserve the world view",
     "status": "passed",
-    "durationMs": 2935
+    "durationMs": 2937
+  },
+  {
+    "name": "city search follows normalization rules without side effects",
+    "status": "passed",
+    "durationMs": 468
+  },
+  {
+    "name": "candidate preview stays local across cancel, escape, and return",
+    "status": "passed",
+    "durationMs": 726
+  },
+  {
+    "name": "candidate confirmation switches once and resets lunch state",
+    "status": "passed",
+    "durationMs": 553
+  },
+  {
+    "name": "rapid confirms keep the latest city only",
+    "status": "passed",
+    "durationMs": 1328
+  },
+  {
+    "name": "world view survives a pending candidate confirmation",
+    "status": "passed",
+    "durationMs": 1185
+  },
+  {
+    "name": "candidate confirmation failure keeps the new city and remains usable",
+    "status": "passed",
+    "durationMs": 451
+  },
+  {
+    "name": "delayed current places response does not close a candidate preview",
+    "status": "passed",
+    "durationMs": 1348
+  },
+  {
+    "name": "tile failure keeps city discovery usable",
+    "status": "passed",
+    "durationMs": 484
+  },
+  {
+    "name": "mobile city discovery supports cancel and confirm",
+    "status": "passed",
+    "durationMs": 560
   },
   {
     "name": "places failure clears stale marker and popup",
     "status": "passed",
-    "durationMs": 346
+    "durationMs": 338
   },
   {
     "name": "out-of-order city responses keep the latest city",
     "status": "passed",
-    "durationMs": 1209
+    "durationMs": 1198
   },
   {
     "name": "pending spin is discarded after city switch",
     "status": "passed",
-    "durationMs": 1003
+    "durationMs": 1013
   },
   {
     "name": "tile failure popup stays unobstructed on desktop and mobile",
     "status": "passed",
-    "durationMs": 1785
+    "durationMs": 1780
   }
 ]

@@ -1,0 +1,21 @@
+{
+  "selectedCity": "beijing",
+  "actions": [
+    "open-from-search",
+    "spin-current-city",
+    "cancel",
+    "open-from-city-marker",
+    "escape",
+    "close",
+    "reopen",
+    "return-to-current-city"
+  ],
+  "apiRequests": [
+    {
+      "method": "POST",
+      "pathname": "/api/spin",
+      "body": "{\"regionId\":\"beijing\"}"
+    }
+  ],
+  "placeRequests": []
+}

@@ -20,7 +20,7 @@
         </a>
         <div class="header-meta">
           <span class="status-dot" aria-hidden="true"></span>
-          <span id="app-version">v0.3.0 · 公开地点示例</span>
+          <span id="app-version">v0.4.0 · 公开地点示例</span>
         </div>
       </div>
     </header>
@@ -51,6 +51,27 @@
             <select id="city-select" disabled>
               <option>正在加载城市...</option>
             </select>
+          </div>
+
+          <div class="city-search">
+            <label class="field-label" for="city-search">发现城市</label>
+            <input
+              id="city-search"
+              class="search-input"
+              type="search"
+              placeholder="中文名 / English name"
+              autocomplete="off"
+              spellcheck="false"
+              aria-controls="city-search-results"
+              disabled
+            >
+            <p id="search-status" class="search-status" role="status" hidden></p>
+            <ul
+              id="city-search-results"
+              class="search-results"
+              aria-label="城市搜索结果"
+              hidden
+            ></ul>
           </div>
 
           <button id="spin-button" class="primary-button" type="button" disabled>
@@ -96,6 +117,52 @@
               </button>
             </div>
           </div>
+          <section
+            id="candidate-preview"
+            class="candidate-preview"
+            aria-labelledby="candidate-title"
+            aria-live="polite"
+            hidden
+          >
+            <div class="candidate-preview-copy">
+              <p id="candidate-title" class="candidate-title">城市预览</p>
+              <p class="candidate-route">
+                <span>
+                  当前抽签城市
+                  <strong id="current-city-label">--</strong>
+                </span>
+                <span class="candidate-arrow" aria-hidden="true">→</span>
+                <span>
+                  候选城市
+                  <strong id="candidate-city-label">--</strong>
+                </span>
+              </p>
+            </div>
+            <div class="candidate-actions">
+              <button
+                id="confirm-city-button"
+                class="candidate-button candidate-confirm"
+                type="button"
+              >
+                确认切换
+              </button>
+              <button
+                id="cancel-city-button"
+                class="candidate-button candidate-cancel"
+                type="button"
+              >
+                取消
+              </button>
+              <button
+                id="close-candidate-button"
+                class="candidate-close"
+                type="button"
+                aria-label="关闭候选预览"
+              >
+                ×
+              </button>
+            </div>
+          </section>
           <div id="map-fallback" class="map-fallback" role="status" hidden>
             <strong>地图暂时安静</strong>
             <span id="map-fallback-detail">地区切换和随机抽签仍然可用。</span>

@@ -1,0 +1,19 @@
+{
+  "confirmedCity": "tokyo",
+  "placesFailed": true,
+  "spinRequest": {
+    "regionId": "tokyo"
+  },
+  "apiRequests": [
+    {
+      "method": "GET",
+      "pathname": "/api/regions/tokyo/places",
+      "body": ""
+    },
+    {
+      "method": "POST",
+      "pathname": "/api/spin",
+      "body": "{\"regionId\":\"tokyo\"}"
+    }
+  ]
+}

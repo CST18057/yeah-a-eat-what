@@ -3,7 +3,6 @@
   "result": "北京烤鸭",
   "actions": [
     "open-world-view",
-    "open-tokyo-city-marker-popup",
     "desktop-drag",
     "desktop-wheel-zoom",
     "return-to-current-city"

@@ -266,6 +266,118 @@ select:disabled {
   cursor: wait;
 }
 
+.city-search {
+  margin: 16px 0 14px;
+}
+
+.search-input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 13px;
+  color: var(--ink);
+  font-size: 14px;
+  background: #f8faf7;
+  border: 1px solid #cbd4cc;
+  border-radius: 8px;
+}
+
+.search-input::placeholder {
+  color: #8a958d;
+}
+
+.search-input:disabled {
+  color: #8b958e;
+  cursor: wait;
+}
+
+.search-status {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.search-status[data-tone="error"] {
+  color: #a43b26;
+}
+
+.search-results {
+  display: grid;
+  max-height: 220px;
+  margin: 8px 0 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  background: #fbfcfa;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.search-results[hidden] {
+  display: none;
+}
+
+.search-result-item {
+  min-width: 0;
+}
+
+.search-result-item + .search-result-item {
+  border-top: 1px solid var(--line);
+}
+
+.search-result-button {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  color: var(--ink);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.search-result-button:hover,
+.search-result-button:focus-visible {
+  background: #eef4ef;
+}
+
+.search-result-button.is-candidate {
+  background: #fff2df;
+}
+
+.search-result-copy,
+.search-city-name,
+.search-city-en {
+  display: block;
+  min-width: 0;
+}
+
+.search-city-name {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.search-city-en {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.search-city-role {
+  color: var(--forest);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.search-result-button[data-current="true"] .search-city-role {
+  color: var(--tomato);
+}
+
 .primary-button {
   display: flex;
   align-items: center;
@@ -427,6 +539,112 @@ select:disabled {
   cursor: default;
 }
 
+.candidate-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 24px;
+  background: #fff2df;
+  border-top: 1px solid #ecd2ad;
+  border-bottom: 1px solid #ecd2ad;
+}
+
+.candidate-preview[hidden] {
+  display: none;
+}
+
+.candidate-preview-copy {
+  min-width: 0;
+}
+
+.candidate-title {
+  margin: 0 0 5px;
+  color: #9b5b1e;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.candidate-route {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.candidate-route strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.candidate-arrow {
+  color: var(--tomato);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.candidate-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+}
+
+.candidate-button,
+.candidate-close {
+  min-height: 38px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.candidate-button {
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.candidate-confirm {
+  color: #fffdf5;
+  background: var(--forest);
+  border: 1px solid var(--forest);
+}
+
+.candidate-confirm:hover {
+  background: var(--forest-dark);
+}
+
+.candidate-cancel {
+  color: var(--forest-dark);
+  background: #fffaf0;
+  border: 1px solid #d8c6a8;
+}
+
+.candidate-cancel:hover {
+  background: #f7ead4;
+}
+
+.candidate-close {
+  display: grid;
+  width: 38px;
+  padding: 0;
+  place-items: center;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.candidate-close:hover {
+  color: var(--ink);
+  background: rgba(23, 33, 27, 0.07);
+}
+
 .map-stage {
   position: relative;
   flex: 1;
@@ -565,6 +783,10 @@ select:disabled {
 
 .city-marker-current {
   filter: drop-shadow(0 3px 7px rgba(217, 84, 50, 0.45));
+}
+
+.city-marker-candidate {
+  filter: drop-shadow(0 3px 7px rgba(242, 181, 68, 0.58));
 }
 
 .leaflet-control-zoom a {
@@ -713,6 +935,27 @@ select:disabled {
     flex-direction: column;
     gap: 3px;
     padding: 12px 18px;
+  }
+
+  .candidate-preview {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 18px;
+  }
+
+  .candidate-actions {
+    width: 100%;
+  }
+
+  .candidate-confirm,
+  .candidate-cancel {
+    min-height: 44px;
+    flex: 1;
+  }
+
+  .candidate-close {
+    min-height: 44px;
   }
 
   .map-stage {
