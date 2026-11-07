@@ -1,0 +1,32 @@
+{
+  "switchedCities": [
+    {
+      "id": "tokyo",
+      "name": "东京"
+    },
+    {
+      "id": "singapore",
+      "name": "新加坡"
+    },
+    {
+      "id": "berlin",
+      "name": "柏林"
+    },
+    {
+      "id": "new-york",
+      "name": "纽约"
+    }
+  ],
+  "placeRequests": [
+    "/api/regions/tokyo/places",
+    "/api/regions/singapore/places",
+    "/api/regions/berlin/places",
+    "/api/regions/new-york/places"
+  ],
+  "spinRequests": [],
+  "finalMap": {
+    "zoom": 12,
+    "lat": 40.7128,
+    "lng": -74.006
+  }
+}
