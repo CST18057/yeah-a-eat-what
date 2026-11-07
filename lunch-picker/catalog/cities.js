@@ -6,4 +6,8 @@ module.exports = [
   require("./cities/guangzhou.json"),
   require("./cities/chengdu.json"),
   require("./cities/xian.json"),
+  require("./cities/tokyo.json"),
+  require("./cities/singapore.json"),
+  require("./cities/berlin.json"),
+  require("./cities/new-york.json"),
 ];

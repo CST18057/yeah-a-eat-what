@@ -1,0 +1,87 @@
+{
+  "id": "tokyo",
+  "name": "东京",
+  "nameEn": "Tokyo",
+  "center": {
+    "lat": 35.6768601,
+    "lng": 139.7638947
+  },
+  "source": {
+    "provider": "OpenStreetMap",
+    "type": "relation",
+    "id": 1543125,
+    "url": "https://www.openstreetmap.org/relation/1543125"
+  },
+  "places": [
+    {
+      "id": "tokyo-tsukiji-outer-market",
+      "name": "築地場外市場",
+      "cuisine": "海鲜小吃",
+      "address": "中央区築地",
+      "lat": 35.6653884,
+      "lng": 139.7704732,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 606978548,
+        "url": "https://www.openstreetmap.org/way/606978548"
+      }
+    },
+    {
+      "id": "tokyo-ameyoko",
+      "name": "アメ横",
+      "cuisine": "市场小吃",
+      "address": "台東区上野",
+      "lat": 35.7100241,
+      "lng": 139.7745414,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "node",
+        "id": 4496960001,
+        "url": "https://www.openstreetmap.org/node/4496960001"
+      }
+    },
+    {
+      "id": "tokyo-shibuya",
+      "name": "渋谷",
+      "cuisine": "潮流美食",
+      "address": "渋谷区渋谷",
+      "lat": 35.658999,
+      "lng": 139.7024447,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "node",
+        "id": 6219204314,
+        "url": "https://www.openstreetmap.org/node/6219204314"
+      }
+    },
+    {
+      "id": "tokyo-golden-gai",
+      "name": "新宿ゴールデン街",
+      "cuisine": "居酒屋",
+      "address": "新宿区歌舞伎町",
+      "lat": 35.6939905,
+      "lng": 139.7047001,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "relation",
+        "id": 16562139,
+        "url": "https://www.openstreetmap.org/relation/16562139"
+      }
+    },
+    {
+      "id": "tokyo-omoide-yokocho",
+      "name": "思い出横丁",
+      "cuisine": "烧鸟与居酒屋",
+      "address": "新宿区西新宿",
+      "lat": 35.6932492,
+      "lng": 139.6994718,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 230397026,
+        "url": "https://www.openstreetmap.org/way/230397026"
+      }
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "id": "new-york",
+  "name": "纽约",
+  "nameEn": "New York",
+  "center": {
+    "lat": 40.7127281,
+    "lng": -74.0060152
+  },
+  "source": {
+    "provider": "OpenStreetMap",
+    "type": "relation",
+    "id": 175905,
+    "url": "https://www.openstreetmap.org/relation/175905"
+  },
+  "places": [
+    {
+      "id": "new-york-chelsea-market",
+      "name": "Chelsea Market",
+      "cuisine": "市场美食",
+      "address": "Manhattan, 9th Avenue",
+      "lat": 40.7420513,
+      "lng": -74.0048973,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "node",
+        "id": 1272608999,
+        "url": "https://www.openstreetmap.org/node/1272608999"
+      }
+    },
+    {
+      "id": "new-york-grand-central-terminal",
+      "name": "Grand Central Terminal",
+      "cuisine": "车站美食广场",
+      "address": "Manhattan, East 42nd Street",
+      "lat": 40.7526944,
+      "lng": -73.977253,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 265947358,
+        "url": "https://www.openstreetmap.org/way/265947358"
+      }
+    },
+    {
+      "id": "new-york-essex-market",
+      "name": "Essex Market",
+      "cuisine": "市场美食",
+      "address": "Manhattan, Essex Street",
+      "lat": 40.7179242,
+      "lng": -73.9880515,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 690624940,
+        "url": "https://www.openstreetmap.org/way/690624940"
+      }
+    },
+    {
+      "id": "new-york-queens-night-market",
+      "name": "Queens Night Market",
+      "cuisine": "夜市小吃",
+      "address": "Queens, Avenue of Science",
+      "lat": 40.7478455,
+      "lng": -73.8505827,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "node",
+        "id": 6946801057,
+        "url": "https://www.openstreetmap.org/node/6946801057"
+      }
+    },
+    {
+      "id": "new-york-brooklyn-borough-hall-greenmarket",
+      "name": "Brooklyn Borough Hall Greenmarket",
+      "cuisine": "农夫市集",
+      "address": "Brooklyn, Court Street",
+      "lat": 40.6936814,
+      "lng": -73.9901275,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "node",
+        "id": 5799183575,
+        "url": "https://www.openstreetmap.org/node/5799183575"
+      }
+    }
+  ]
+}

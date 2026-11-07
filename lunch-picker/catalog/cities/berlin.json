@@ -1,0 +1,73 @@
+{
+  "id": "berlin",
+  "name": "柏林",
+  "nameEn": "Berlin",
+  "center": {
+    "lat": 52.5173885,
+    "lng": 13.3951309
+  },
+  "source": {
+    "provider": "OpenStreetMap",
+    "type": "relation",
+    "id": 62422,
+    "url": "https://www.openstreetmap.org/relation/62422"
+  },
+  "places": [
+    {
+      "id": "berlin-markthalle-neun",
+      "name": "Markthalle Neun",
+      "cuisine": "市场美食",
+      "address": "Kreuzberg, Eisenbahnstraße",
+      "lat": 52.5021661,
+      "lng": 13.4314886,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "relation",
+        "id": 9503840,
+        "url": "https://www.openstreetmap.org/relation/9503840"
+      }
+    },
+    {
+      "id": "berlin-arminiusmarkthalle",
+      "name": "Arminiusmarkthalle",
+      "cuisine": "市场美食",
+      "address": "Moabit, Arminiusstraße",
+      "lat": 52.5278334,
+      "lng": 13.3386209,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 4703544,
+        "url": "https://www.openstreetmap.org/way/4703544"
+      }
+    },
+    {
+      "id": "berlin-marheineke-markthalle",
+      "name": "Marheineke Markthalle",
+      "cuisine": "市场美食",
+      "address": "Kreuzberg, Marheinekeplatz",
+      "lat": 52.4892913,
+      "lng": 13.3946855,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 179019726,
+        "url": "https://www.openstreetmap.org/way/179019726"
+      }
+    },
+    {
+      "id": "berlin-dong-xuan-center",
+      "name": "Dong Xuan Center",
+      "cuisine": "亚洲市场美食",
+      "address": "Lichtenberg, Herzbergstraße",
+      "lat": 52.5287912,
+      "lng": 13.4896805,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 49796196,
+        "url": "https://www.openstreetmap.org/way/49796196"
+      }
+    }
+  ]
+}
