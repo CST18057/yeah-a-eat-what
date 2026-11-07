@@ -33,7 +33,7 @@ Browser scenarios:
 3. Places failure clears stale marker and popup
 4. Out-of-order city responses keep the latest city
 5. Pending spin is discarded after city change
-6. Tile failure keeps markers and explains fallback
+6. Tile failure popup stays unobstructed on desktop and mobile
 
 ## Evidence
 

@@ -182,6 +182,23 @@ async function assertNoOverflow(page) {
   assert.ok(overflow <= 1, `Page overflows horizontally by ${overflow}px`);
 }
 
+function intersectionArea(first, second) {
+  if (!first || !second) {
+    return 0;
+  }
+  const width = Math.max(
+    0,
+    Math.min(first.x + first.width, second.x + second.width) -
+      Math.max(first.x, second.x),
+  );
+  const height = Math.max(
+    0,
+    Math.min(first.y + first.height, second.y + second.height) -
+      Math.max(first.y, second.y),
+  );
+  return width * height;
+}
+
 const tests = [
   {
     name: "desktop core flow",
@@ -351,29 +368,66 @@ const tests = [
     },
   },
   {
-    name: "tile failure keeps markers and explains fallback",
+    name: "tile failure popup stays unobstructed on desktop and mobile",
     async run(browser) {
-      const { context, page, pageErrors } = await openPage(
-        browser,
-        { width: 1280, height: 900 },
-        { failTiles: true },
-      );
-      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
-      await waitForCityReady(page);
-      await waitForMarkers(page);
-      await page.waitForFunction(
-        () => !document.querySelector("#map-fallback")?.hidden,
-        null,
-        { timeout: 8000 },
-      );
+      const viewports = [
+        { width: 1280, height: 900, suffix: "desktop" },
+        { width: 390, height: 844, suffix: "mobile" },
+      ];
 
-      assert.match(
-        await page.locator("#map-fallback-detail").textContent(),
-        /底图暂时不可用/,
-      );
-      assert.equal(await page.locator(".leaflet-marker-icon").count(), 5);
-      assert.deepEqual(pageErrors, []);
-      await context.close();
+      for (const viewport of viewports) {
+        const { context, page, pageErrors } = await openPage(
+          browser,
+          { width: viewport.width, height: viewport.height },
+          { failTiles: true },
+        );
+        await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+        await waitForCityReady(page);
+        await waitForMarkers(page);
+        await page.waitForFunction(
+          () => !document.querySelector("#map-fallback")?.hidden,
+          null,
+          { timeout: 8000 },
+        );
+
+        assert.match(
+          await page.locator("#map-fallback-detail").textContent(),
+          /底图暂时不可用/,
+        );
+        assert.equal(await page.locator(".leaflet-marker-icon").count(), 5);
+
+        await page.locator("#spin-button").click();
+        await page.waitForFunction(
+          () => document.querySelector("#result-name")?.textContent === "北京烤鸭",
+        );
+        await page.waitForFunction(() => {
+          const popup = document.querySelector(".leaflet-popup");
+          return popup && getComputedStyle(popup).opacity === "1";
+        });
+        await page.waitForSelector(".popup-name");
+        await page.waitForTimeout(550);
+
+        const fallbackBox = await page.locator("#map-fallback").boundingBox();
+        const popupBox = await page.locator(".leaflet-popup").boundingBox();
+        assert.equal(
+          intersectionArea(fallbackBox, popupBox),
+          0,
+          "Map fallback overlaps the visible place popup",
+        );
+        assert.equal(
+          await page.locator(".popup-name").textContent(),
+          "北京烤鸭",
+        );
+        await page.screenshot({
+          path: path.join(
+            outputDir,
+            `tile-failure-popup-${viewport.suffix}.png`,
+          ),
+          fullPage: true,
+        });
+        assert.deepEqual(pageErrors, []);
+        await context.close();
+      }
     },
   },
 ];

@@ -59,4 +59,5 @@ listings or a real-time availability feed.
 - Region switching and random selection stay available when places are missing.
 - Only the latest city response can update the interface.
 - A pending spin is discarded if the user changes city before it returns.
-- If map tiles fail, markers and selection remain usable with a visible notice.
+- If map tiles fail, the fallback notice stays outside the map viewport so it
+  cannot cover a place popup; markers and selection remain usable.

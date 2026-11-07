@@ -175,6 +175,7 @@
   }
 
   function updateMapFallback() {
+    const wasHidden = mapFallback.hidden;
     const messages = [];
 
     if (state.mapUnavailable) {
@@ -189,6 +190,11 @@
 
     mapFallback.hidden = messages.length === 0;
     mapFallbackDetail.textContent = messages.join(" ");
+    if (wasHidden !== mapFallback.hidden && state.map) {
+      requestAnimationFrame(() => {
+        state.map.invalidateSize({ pan: false });
+      });
+    }
   }
 
   function initializeMap() {
