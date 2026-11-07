@@ -1,0 +1,56 @@
+[
+  {
+    "scenario": "success",
+    "beforeResponse": {
+      "zoom": 1,
+      "lat": 0.00356,
+      "lng": 0.12684
+    },
+    "afterResponse": {
+      "zoom": 1,
+      "lat": 0.00356,
+      "lng": 0.12684
+    },
+    "requests": [
+      {
+        "method": "GET",
+        "pathname": "/api/regions"
+      },
+      {
+        "method": "GET",
+        "pathname": "/api/regions/beijing/places"
+      },
+      {
+        "method": "POST",
+        "pathname": "/api/spin"
+      }
+    ]
+  },
+  {
+    "scenario": "failure",
+    "beforeResponse": {
+      "zoom": 1,
+      "lat": 0.00356,
+      "lng": 0.12684
+    },
+    "afterResponse": {
+      "zoom": 1,
+      "lat": 0.00356,
+      "lng": 0.12684
+    },
+    "requests": [
+      {
+        "method": "GET",
+        "pathname": "/api/regions"
+      },
+      {
+        "method": "GET",
+        "pathname": "/api/regions/beijing/places"
+      },
+      {
+        "method": "POST",
+        "pathname": "/api/spin"
+      }
+    ]
+  }
+]

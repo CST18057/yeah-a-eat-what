@@ -1,0 +1,73 @@
+{
+  "id": "singapore",
+  "name": "新加坡",
+  "nameEn": "Singapore",
+  "center": {
+    "lat": 1.357107,
+    "lng": 103.8194992
+  },
+  "source": {
+    "provider": "OpenStreetMap",
+    "type": "relation",
+    "id": 536780,
+    "url": "https://www.openstreetmap.org/relation/536780"
+  },
+  "places": [
+    {
+      "id": "singapore-lau-pa-sat",
+      "name": "老巴刹",
+      "cuisine": "新加坡熟食中心",
+      "address": "Downtown Core, Raffles Quay",
+      "lat": 1.2806167,
+      "lng": 103.8504802,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 45098520,
+        "url": "https://www.openstreetmap.org/way/45098520"
+      }
+    },
+    {
+      "id": "singapore-tekka-centre",
+      "name": "竹脚中心",
+      "cuisine": "印度与南洋美食",
+      "address": "Little India, Buffalo Road",
+      "lat": 1.3061912,
+      "lng": 103.8506146,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 47198835,
+        "url": "https://www.openstreetmap.org/way/47198835"
+      }
+    },
+    {
+      "id": "singapore-chinatown-complex",
+      "name": "牛车水大厦",
+      "cuisine": "熟食中心",
+      "address": "Chinatown, Smith Street",
+      "lat": 1.2822688,
+      "lng": 103.8431494,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 47298646,
+        "url": "https://www.openstreetmap.org/way/47298646"
+      }
+    },
+    {
+      "id": "singapore-newton-food-centre",
+      "name": "纽顿熟食中心",
+      "cuisine": "海鲜与烧烤",
+      "address": "Newton, Clemenceau Avenue North",
+      "lat": 1.312079,
+      "lng": 103.8392877,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 41662296,
+        "url": "https://www.openstreetmap.org/way/41662296"
+      }
+    }
+  ]
+}

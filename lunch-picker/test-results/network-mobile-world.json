@@ -1,0 +1,25 @@
+{
+  "selectedCity": "beijing",
+  "actions": [
+    "open-world-view",
+    "mobile-drag",
+    "mobile-pinch-zoom",
+    "return-to-current-city"
+  ],
+  "apiRequestsDuringBrowse": [],
+  "worldView": {
+    "zoom": 1,
+    "lat": 30.1482,
+    "lng": 32.82215
+  },
+  "draggedView": {
+    "zoom": 1,
+    "lat": 45.3367,
+    "lng": -37.26563
+  },
+  "finalMap": {
+    "zoom": 12,
+    "lat": 39.9042,
+    "lng": 116.4074
+  }
+}

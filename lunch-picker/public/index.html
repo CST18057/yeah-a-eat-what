@@ -20,7 +20,7 @@
         </a>
         <div class="header-meta">
           <span class="status-dot" aria-hidden="true"></span>
-          <span id="app-version">公开地点示例</span>
+          <span id="app-version">v0.3.0 · 公开地点示例</span>
         </div>
       </div>
     </header>
@@ -71,11 +71,30 @@
 
         <section class="panel map-panel" aria-labelledby="map-title">
           <div class="panel-heading map-heading">
-            <div>
+            <div class="map-heading-copy">
               <p class="section-kicker">02 / 看位置</p>
               <h2 id="map-title">城市地图</h2>
+              <p id="map-caption" class="map-caption">等待城市数据</p>
             </div>
-            <p id="map-caption" class="map-caption">等待城市数据</p>
+            <div class="map-view-actions" role="group" aria-label="地图视图">
+              <button
+                id="world-view-button"
+                class="map-view-button"
+                type="button"
+                aria-pressed="false"
+                disabled
+              >
+                世界视图
+              </button>
+              <button
+                id="return-city-button"
+                class="map-view-button map-view-button-active"
+                type="button"
+                disabled
+              >
+                回到抽签城市
+              </button>
+            </div>
           </div>
           <div id="map-fallback" class="map-fallback" role="status" hidden>
             <strong>地图暂时安静</strong>

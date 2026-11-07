@@ -31,20 +31,42 @@ async function jsonRequest(pathname, options) {
   return { response, body };
 }
 
-test("catalog contains five cities and twenty-five traceable places", () => {
+test("catalog contains nine cities and forty-three traceable places", () => {
   validateRegions(cities);
-  assert.equal(cities.length, 5);
+  assert.equal(cities.length, 9);
   assert.deepEqual(
     cities.map((city) => city.id),
-    ["beijing", "shanghai", "guangzhou", "chengdu", "xian"],
+    [
+      "beijing",
+      "shanghai",
+      "guangzhou",
+      "chengdu",
+      "xian",
+      "tokyo",
+      "singapore",
+      "berlin",
+      "new-york",
+    ],
   );
 
   const places = cities.flatMap((city) => city.places);
-  assert.equal(places.length, 25);
+  assert.equal(places.length, 43);
   assert.equal(new Set(places.map((place) => place.id)).size, places.length);
 
+  const expectedCounts = new Map([
+    ["beijing", 5],
+    ["shanghai", 5],
+    ["guangzhou", 5],
+    ["chengdu", 5],
+    ["xian", 5],
+    ["tokyo", 5],
+    ["singapore", 4],
+    ["berlin", 4],
+    ["new-york", 5],
+  ]);
+
   for (const city of cities) {
-    assert.equal(city.places.length, 5);
+    assert.equal(city.places.length, expectedCounts.get(city.id));
     assert.equal(city.source.provider, "OpenStreetMap");
     for (const place of city.places) {
       assert.equal(place.source.provider, "OpenStreetMap");
@@ -55,11 +77,18 @@ test("catalog contains five cities and twenty-five traceable places", () => {
   }
 });
 
-test("GET /api/regions returns the five-city contract", async () => {
+test("catalog validation rejects an empty city", () => {
+  assert.throws(
+    () => validateRegions([{ ...cities[0], places: [] }]),
+    /places must not be empty/,
+  );
+});
+
+test("GET /api/regions returns the nine-city contract", async () => {
   const { response, body } = await jsonRequest("/api/regions");
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("content-type"), "application/json; charset=utf-8");
-  assert.equal(body.regions.length, 5);
+  assert.equal(body.regions.length, 9);
   assert.deepEqual(body.regions[0], {
     id: "beijing",
     name: "北京",
@@ -75,6 +104,34 @@ test("GET /api/regions returns the five-city contract", async () => {
   });
 });
 
+test("new city endpoints expose the required place counts", async () => {
+  const expectedCounts = new Map([
+    ["tokyo", 5],
+    ["singapore", 4],
+    ["berlin", 4],
+    ["new-york", 5],
+  ]);
+
+  for (const [regionId, count] of expectedCounts) {
+    const { response, body } = await jsonRequest(`/api/regions/${regionId}/places`);
+    assert.equal(response.status, 200);
+    assert.equal(body.region.id, regionId);
+    assert.equal(body.places.length, count);
+    assert.equal(new Set(body.places.map((place) => place.id)).size, count);
+    assert.ok(body.places.every((place) => place.source.provider === "OpenStreetMap"));
+  }
+});
+
+test("repeated place requests are stable and return isolated data", async () => {
+  const first = await jsonRequest("/api/regions/tokyo/places");
+  const second = await jsonRequest("/api/regions/tokyo/places");
+  assert.deepEqual(first.body, second.body);
+
+  first.body.places[0].name = "mutated";
+  const third = await jsonRequest("/api/regions/tokyo/places");
+  assert.equal(third.body.places[0].name, "築地場外市場");
+});
+
 test("GET /api/regions/:id/places returns the selected city and places", async () => {
   const { response, body } = await jsonRequest("/api/regions/chengdu/places");
   assert.equal(response.status, 200);
@@ -86,11 +143,11 @@ test("GET /api/regions/:id/places returns the selected city and places", async (
 });
 
 test("unknown cities return a structured 404", async () => {
-  const { response, body } = await jsonRequest("/api/regions/tokyo/places");
+  const { response, body } = await jsonRequest("/api/regions/seoul/places");
   assert.equal(response.status, 404);
   assert.deepEqual(body.error, {
     code: "REGION_NOT_FOUND",
-    message: "Unknown region: tokyo",
+    message: "Unknown region: seoul",
   });
 });
 
@@ -122,6 +179,8 @@ test("POST /api/spin returns a place from the requested city", async () => {
 test("spin selection is deterministic for an injected random source", () => {
   assert.equal(spinRegion("beijing", () => 0).place.id, "beijing-guijie");
   assert.equal(spinRegion("beijing", () => 0.999).place.id, "beijing-niujie");
+  assert.equal(spinRegion("tokyo", () => 0).place.id, "tokyo-tsukiji-outer-market");
+  assert.equal(spinRegion("new-york", () => 0.999).place.id, "new-york-brooklyn-borough-hall-greenmarket");
   assert.equal(spinRegion("missing"), null);
 });
 

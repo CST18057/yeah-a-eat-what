@@ -10,6 +10,9 @@
   const mapCaption = document.querySelector("#map-caption");
   const mapFallback = document.querySelector("#map-fallback");
   const mapFallbackDetail = document.querySelector("#map-fallback-detail");
+  const mapElement = document.querySelector("#map");
+  const worldViewButton = document.querySelector("#world-view-button");
+  const returnCityButton = document.querySelector("#return-city-button");
   const placeCount = document.querySelector("#place-count");
   const placeStatus = document.querySelector("#place-status");
   const placesList = document.querySelector("#places-list");
@@ -20,6 +23,7 @@
     currentRegion: null,
     places: [],
     markers: new Map(),
+    cityMarkers: [],
     map: null,
     tileLayer: null,
     cityRequestId: 0,
@@ -28,6 +32,7 @@
     mapUnavailable: "",
     tileUnavailable: false,
     tileErrors: 0,
+    worldViewActive: false,
   };
 
   function setStatus(element, message, tone = "") {
@@ -207,10 +212,18 @@
 
     try {
       state.map = window.L.map("map", {
-        center: [34.5, 108.9],
-        zoom: 4,
-        minZoom: 3,
+        center: [30, 15],
+        zoom: 2,
+        minZoom: 1,
         maxZoom: 18,
+        maxBounds: [
+          [-85, -180],
+          [85, 180],
+        ],
+        maxBoundsViscosity: 0.7,
+        scrollWheelZoom: true,
+        touchZoom: true,
+        worldCopyJump: false,
         zoomControl: true,
         attributionControl: true,
       });
@@ -220,6 +233,7 @@
         {
           subdomains: ["1", "2", "3", "4"],
           maxZoom: 18,
+          noWrap: true,
           attribution: "底图 © 高德地图",
         },
       );
@@ -234,6 +248,14 @@
       });
 
       state.tileLayer.addTo(state.map);
+      const syncMapState = () => {
+        const center = state.map.getCenter();
+        mapElement.dataset.zoom = String(state.map.getZoom());
+        mapElement.dataset.centerLat = center.lat.toFixed(5);
+        mapElement.dataset.centerLng = center.lng.toFixed(5);
+      };
+      state.map.on("moveend zoomend", syncMapState);
+      syncMapState();
       window.addEventListener("resize", () => {
         state.map.invalidateSize({ pan: false });
       });
@@ -244,7 +266,7 @@
     }
   }
 
-  function clearMarkers() {
+  function clearPlaceMarkers() {
     if (!state.map) {
       state.markers.clear();
       return;
@@ -258,6 +280,71 @@
     document
       .querySelectorAll(".leaflet-popup")
       .forEach((popup) => popup.remove());
+  }
+
+  function createCityPopupContent(region) {
+    const wrapper = document.createElement("div");
+    const name = document.createElement("strong");
+    const detail = document.createElement("span");
+
+    name.className = "popup-name";
+    name.textContent = region.name;
+    detail.className = "popup-detail";
+    detail.textContent =
+      region.id === state.currentRegion?.id
+        ? `${region.nameEn || "Current city"} · 当前抽签城市`
+        : region.nameEn || "公开地图城市";
+    wrapper.append(name, detail);
+    return wrapper;
+  }
+
+  function clearCityMarkers() {
+    if (!state.map) {
+      state.cityMarkers = [];
+      return;
+    }
+
+    state.cityMarkers.forEach((marker) => marker.remove());
+    state.cityMarkers = [];
+  }
+
+  function renderCityMarkers() {
+    if (!state.map) {
+      return;
+    }
+
+    clearCityMarkers();
+    state.regions.forEach((region) => {
+      if (
+        !region.center ||
+        !Number.isFinite(region.center.lat) ||
+        !Number.isFinite(region.center.lng)
+      ) {
+        return;
+      }
+
+      const isCurrent = region.id === state.currentRegion?.id;
+      const marker = window.L.circleMarker(
+        [region.center.lat, region.center.lng],
+        {
+          radius: isCurrent ? 9 : 6,
+          color: "#fffdf5",
+          weight: 2,
+          fillColor: isCurrent ? "#d95432" : "#245c46",
+          fillOpacity: 0.96,
+          className: isCurrent
+            ? "city-marker city-marker-current"
+            : "city-marker",
+        },
+      );
+      marker.bindTooltip(region.name, {
+        direction: "top",
+        offset: [0, -5],
+      });
+      marker.bindPopup(createCityPopupContent(region));
+      marker.addTo(state.map);
+      state.cityMarkers.push(marker);
+    });
   }
 
   function createPopupContent(place) {
@@ -287,7 +374,7 @@
 
     validPlaces.forEach(({ place, position }, index) => {
       const icon = window.L.divIcon({
-        className: "",
+        className: "place-marker-icon",
         html: `<div class="lunch-marker"><span>${index + 1}</span></div>`,
         iconSize: [26, 26],
         iconAnchor: [13, 26],
@@ -318,12 +405,86 @@
       state.map.fitBounds(points, {
         padding: [42, 42],
         maxZoom: 12,
+        animate: false,
       });
     } else {
-      state.map.setView(regionCenter(region, places), points.length ? 12 : 8);
+      state.map.setView(
+        regionCenter(region, places),
+        points.length ? 12 : 8,
+        { animate: false },
+      );
     }
 
     state.map.invalidateSize({ pan: false });
+  }
+
+  function updateMapModeControls() {
+    worldViewButton.setAttribute(
+      "aria-pressed",
+      String(state.worldViewActive),
+    );
+    worldViewButton.disabled = !state.regions.length;
+    returnCityButton.disabled = !state.currentRegion;
+    returnCityButton.classList.toggle(
+      "map-view-button-active",
+      !state.worldViewActive,
+    );
+  }
+
+  function setMapCaptionForCurrentCity() {
+    if (!state.currentRegion) {
+      mapCaption.textContent = "等待城市数据";
+      return;
+    }
+
+    if (state.placesError) {
+      mapCaption.textContent = `${state.currentRegion.name} · 地点不可用`;
+    } else if (state.places.length) {
+      mapCaption.textContent = `${state.currentRegion.name} · ${state.places.length} 个地点`;
+    } else {
+      mapCaption.textContent = `${state.currentRegion.name} · 地点加载中`;
+    }
+  }
+
+  function showWorldView() {
+    if (!state.map || !state.regions.length) {
+      return;
+    }
+
+    const points = state.regions
+      .filter(
+        (region) =>
+          region.center &&
+          Number.isFinite(region.center.lat) &&
+          Number.isFinite(region.center.lng),
+      )
+      .map((region) => [region.center.lat, region.center.lng]);
+
+    state.worldViewActive = true;
+    if (points.length > 1) {
+      state.map.fitBounds(points, {
+        padding: [32, 32],
+        maxZoom: 3,
+        animate: false,
+      });
+    } else {
+      state.map.setView([30, 15], 2, { animate: false });
+    }
+    updateMapModeControls();
+    mapCaption.textContent = `世界视图 · 抽签城市：${
+      state.currentRegion?.name || "未选择"
+    }`;
+  }
+
+  function returnToCurrentCity() {
+    if (!state.map || !state.currentRegion) {
+      return;
+    }
+
+    state.worldViewActive = false;
+    focusMap(state.currentRegion, state.places);
+    updateMapModeControls();
+    setMapCaptionForCurrentCity();
   }
 
   function renderResult(name, meta) {
@@ -344,7 +505,9 @@
   function openPlace(place) {
     const marker = state.markers.get(place.id);
     if (marker && state.map) {
-      state.map.setView(marker.getLatLng(), Math.max(state.map.getZoom(), 13));
+      state.map.setView(marker.getLatLng(), Math.max(state.map.getZoom(), 13), {
+        animate: false,
+      });
       marker.openPopup();
     }
   }
@@ -397,8 +560,11 @@
     state.currentRegion = region;
     state.places = [];
     state.placesError = "";
+    state.worldViewActive = false;
     citySelect.value = region.id;
-    clearMarkers();
+    clearPlaceMarkers();
+    renderCityMarkers();
+    updateMapModeControls();
     renderPlaces();
     clearPlacesList("正在加载公开地点...");
     placeCount.textContent = "-- 处";
@@ -422,7 +588,9 @@
       state.placesError = "";
       renderPlaces();
       renderMarkers();
-      focusMap(region, state.places);
+      if (!state.worldViewActive) {
+        focusMap(region, state.places);
+      }
 
       if (state.places.length) {
         setStatus(
@@ -435,7 +603,9 @@
         setStatus(globalStatus, "地点清单为空，仍可尝试随机抽签。");
       }
 
-      mapCaption.textContent = `${region.name} · ${state.places.length} 个地点`;
+      if (!state.worldViewActive) {
+        setMapCaptionForCurrentCity();
+      }
     } catch (error) {
       if (requestId !== state.cityRequestId) {
         return;
@@ -443,7 +613,7 @@
 
       state.places = [];
       state.placesError = "地点暂时不可用";
-      clearMarkers();
+      clearPlaceMarkers();
       clearPlacesList("暂无地点，可换城市或直接抽签。");
       placeCount.textContent = "0 处";
       renderResult("地点暂时不可用", `仍可抽签，当前城市：${region.name}`);
@@ -453,8 +623,10 @@
         "error",
       );
       setStatus(globalStatus, "地点清单暂时不可用，抽签入口保持开放。", "error");
-      mapCaption.textContent = `${region.name} · 地点不可用`;
-      focusMap(region);
+      if (!state.worldViewActive) {
+        setMapCaptionForCurrentCity();
+        focusMap(region);
+      }
       updateMapFallback();
     }
   }
@@ -527,12 +699,15 @@
     cityCount.textContent = `${regions.length} 城`;
     citySelect.disabled = false;
     spinButton.disabled = false;
+    updateMapModeControls();
   }
 
   async function init() {
     initializeMap();
     citySelect.addEventListener("change", () => selectCity(citySelect.value));
     spinButton.addEventListener("click", spin);
+    worldViewButton.addEventListener("click", showWorldView);
+    returnCityButton.addEventListener("click", returnToCurrentCity);
     document.addEventListener("keydown", (event) => {
       if (
         event.code !== "Space" ||

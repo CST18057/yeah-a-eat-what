@@ -2,31 +2,51 @@
   {
     "name": "desktop core flow",
     "status": "passed",
-    "durationMs": 451
+    "durationMs": 553
   },
   {
     "name": "mobile core flow",
     "status": "passed",
-    "durationMs": 326
+    "durationMs": 335
+  },
+  {
+    "name": "desktop world browsing does not change lunch state",
+    "status": "passed",
+    "durationMs": 1753
+  },
+  {
+    "name": "mobile world browsing supports pinch and return",
+    "status": "passed",
+    "durationMs": 1130
+  },
+  {
+    "name": "four new cities switch map and places coherently",
+    "status": "passed",
+    "durationMs": 889
+  },
+  {
+    "name": "delayed places responses preserve the world view",
+    "status": "passed",
+    "durationMs": 2935
   },
   {
     "name": "places failure clears stale marker and popup",
     "status": "passed",
-    "durationMs": 334
+    "durationMs": 346
   },
   {
     "name": "out-of-order city responses keep the latest city",
     "status": "passed",
-    "durationMs": 1177
+    "durationMs": 1209
   },
   {
     "name": "pending spin is discarded after city switch",
     "status": "passed",
-    "durationMs": 1000
+    "durationMs": 1003
   },
   {
     "name": "tile failure popup stays unobstructed on desktop and mobile",
     "status": "passed",
-    "durationMs": 1786
+    "durationMs": 1785
   }
 ]
