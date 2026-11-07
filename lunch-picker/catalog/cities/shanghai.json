@@ -1,0 +1,87 @@
+{
+  "id": "shanghai",
+  "name": "上海",
+  "nameEn": "Shanghai",
+  "center": {
+    "lat": 31.2312707,
+    "lng": 121.4700152
+  },
+  "source": {
+    "provider": "OpenStreetMap",
+    "type": "relation",
+    "id": 913067,
+    "url": "https://www.openstreetmap.org/relation/913067"
+  },
+  "places": [
+    {
+      "id": "shanghai-chenghuangmiao",
+      "name": "城隍庙",
+      "cuisine": "本帮小吃",
+      "address": "黄浦区方浜中路",
+      "lat": 31.2280088,
+      "lng": 121.4880067,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 428202597,
+        "url": "https://www.openstreetmap.org/way/428202597"
+      }
+    },
+    {
+      "id": "shanghai-nanjingdonglu",
+      "name": "南京东路",
+      "cuisine": "海派美食",
+      "address": "黄浦区南京东路",
+      "lat": 31.239147,
+      "lng": 121.4792191,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "node",
+        "id": 3800385620,
+        "url": "https://www.openstreetmap.org/node/3800385620"
+      }
+    },
+    {
+      "id": "shanghai-yunnan-south-road",
+      "name": "云南南路",
+      "cuisine": "上海小吃",
+      "address": "黄浦区云南南路",
+      "lat": 31.2287041,
+      "lng": 121.4768902,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 39920684,
+        "url": "https://www.openstreetmap.org/way/39920684"
+      }
+    },
+    {
+      "id": "shanghai-wujiang-road",
+      "name": "吴江路",
+      "cuisine": "街边小吃",
+      "address": "静安区吴江路",
+      "lat": 31.2317063,
+      "lng": 121.455769,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 413789558,
+        "url": "https://www.openstreetmap.org/way/413789558"
+      }
+    },
+    {
+      "id": "shanghai-hongquan-road",
+      "name": "虹泉路",
+      "cuisine": "韩式美食",
+      "address": "闵行区虹泉路",
+      "lat": 31.171795,
+      "lng": 121.37029,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 240826953,
+        "url": "https://www.openstreetmap.org/way/240826953"
+      }
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "id": "xian",
+  "name": "西安",
+  "nameEn": "Xi'an",
+  "center": {
+    "lat": 34.261004,
+    "lng": 108.9423363
+  },
+  "source": {
+    "provider": "OpenStreetMap",
+    "type": "relation",
+    "id": 3226004,
+    "url": "https://www.openstreetmap.org/relation/3226004"
+  },
+  "places": [
+    {
+      "id": "xian-huiminjie",
+      "name": "回民街",
+      "cuisine": "清真小吃",
+      "address": "莲湖区北院门",
+      "lat": 34.2633712,
+      "lng": 108.9389287,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 164554515,
+        "url": "https://www.openstreetmap.org/way/164554515"
+      }
+    },
+    {
+      "id": "xian-yongxingfang",
+      "name": "永兴坊",
+      "cuisine": "陕西非遗美食",
+      "address": "新城区中山门街道",
+      "lat": 34.2664678,
+      "lng": 108.965429,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 376248518,
+        "url": "https://www.openstreetmap.org/way/376248518"
+      }
+    },
+    {
+      "id": "xian-datangbuyecheng",
+      "name": "大唐不夜城",
+      "cuisine": "唐风夜市",
+      "address": "雁塔区大雁塔街道",
+      "lat": 34.2154878,
+      "lng": 108.9599829,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "relation",
+        "id": 18459164,
+        "url": "https://www.openstreetmap.org/relation/18459164"
+      }
+    },
+    {
+      "id": "xian-xiaozhai",
+      "name": "小寨",
+      "cuisine": "西安小吃",
+      "address": "雁塔区小寨西路",
+      "lat": 34.2243847,
+      "lng": 108.9423689,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "node",
+        "id": 9315820280,
+        "url": "https://www.openstreetmap.org/node/9315820280"
+      }
+    },
+    {
+      "id": "xian-sajinqiao",
+      "name": "洒金桥",
+      "cuisine": "坊上美食",
+      "address": "莲湖区洒金桥",
+      "lat": 34.2679688,
+      "lng": 108.9280213,
+      "source": {
+        "provider": "OpenStreetMap",
+        "type": "way",
+        "id": 516364636,
+        "url": "https://www.openstreetmap.org/way/516364636"
+      }
+    }
+  ]
+}
