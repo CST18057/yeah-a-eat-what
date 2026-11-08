@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-11-08T08:32:59.642Z",
+  "finishedAt": "2026-11-08T08:33:05.503Z",
+  "candidate": {
+    "repo": "https://github.com/CST18057/yeah-a-eat-what.git",
+    "requestedRef": "e167a4e581040501bf579a39bbf2780e9a61f1cc",
+    "commit": "e167a4e581040501bf579a39bbf2780e9a61f1cc",
+    "tree": "9afb219fa0be4de6f7f5d073810701677778403e",
+    "projectSubdir": "lunch-picker"
+  },
+  "environment": {
+    "node": "v22.23.4",
+    "npm": "12.2.2",
+    "git": "git version 2.43.0",
+    "platform": "linux-x64"
+  },
+  "projectSubdir": "lunch-picker",
+  "knownBlockers": [
+    "Keyboard pan invalidation fix is not present",
+    "Public-release compliance fixes are not present"
+  ],
+  "steps": [
+    {
+      "name": "clone candidate",
+      "command": "git clone --quiet --no-checkout https://github.com/CST18057/yeah-a-eat-what.git <temporary-checkout>/checkout",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 5782,
+      "stdoutTail": "",
+      "stderrTail": ""
+    },
+    {
+      "name": "checkout candidate ref",
+      "command": "git checkout --quiet --detach e167a4e581040501bf579a39bbf2780e9a61f1cc",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 11,
+      "stdoutTail": "",
+      "stderrTail": ""
+    },
+    {
+      "name": "tool versions",
+      "command": "git --version && node --version && npm --version",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 66,
+      "stdoutTail": "git version 2.43.0\nv22.23.4\n12.2.2",
+      "stderrTail": ""
+    },
+    {
+      "name": "resolve commit and tree",
+      "command": "git rev-parse HEAD && git rev-parse HEAD^{tree}",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 4,
+      "stdoutTail": "e167a4e581040501bf579a39bbf2780e9a61f1cc\n9afb219fa0be4de6f7f5d073810701677778403e",
+      "stderrTail": ""
+    },
+    {
+      "name": "preflight required scripts",
+      "command": null,
+      "status": "fail",
+      "exitCode": null,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 0,
+      "stdoutTail": "",
+      "stderrTail": "Missing required package scripts: test:cross-feature"
+    },
+    {
+      "name": "remaining automated gates",
+      "command": null,
+      "status": "skipped",
+      "exitCode": null,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 0,
+      "stdoutTail": "",
+      "stderrTail": "Skipped because the candidate does not expose all required scripts"
+    }
+  ],
+  "failureSummary": [
+    {
+      "step": "preflight required scripts",
+      "exitCode": null,
+      "timedOut": false,
+      "detail": "Missing required package scripts: test:cross-feature"
+    }
+  ],
+  "artifacts": [],
+  "artifactCount": 0,
+  "releaseReady": false,
+  "verdict": "blocked",
+  "blockers": [
+    {
+      "kind": "known-blocker",
+      "reason": "Keyboard pan invalidation fix is not present"
+    },
+    {
+      "kind": "known-blocker",
+      "reason": "Public-release compliance fixes are not present"
+    },
+    {
+      "kind": "failed-gate",
+      "reason": "preflight required scripts: Missing required package scripts: test:cross-feature"
+    },
+    {
+      "kind": "incomplete-gate",
+      "reason": "remaining automated gates: Skipped because the candidate does not expose all required scripts"
+    }
+  ],
+  "workspaceRetained": false,
+  "workspacePath": null,
+  "resultFingerprint": "715df2572e82f0291c9b7aad6292824df352770b5c692a2629f8a31960ad8639"
+}
