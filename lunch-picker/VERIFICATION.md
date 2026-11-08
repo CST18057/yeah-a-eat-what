@@ -1,10 +1,22 @@
-# v0.4.0 City Discovery Verification
+# v0.4.1 City Discovery Verification
 
 Date: 2026-11-08
 
 ## Baseline
 
-- Parent: `main@874d6a08cf6e81b9d4dedcaf3c46a660ca02f27e`.
+- Parent: `main@55e0ecc793d67b8dcfa1ab11a9b5c9235085c780` (v0.4.0).
+
+## Tile Hotfix
+
+- Replaced the retired Gaode request that returned HTTP 404 with the current
+  `/appmaptile?lang=zh_cn&size=1&scale=1&style=8` endpoint.
+- Live checks against `webrd01` through `webrd04` returned HTTP 200,
+  `image/png`, and non-empty tile bodies.
+- Browser coverage asserts the generated tile URL contains the required
+  parameters; the existing failure-injection test still verifies map fallback.
+- Live browser evidence is stored in `test-results/live-tile-check.json`,
+  `live-tile-desktop.png`, `live-tile-mobile.png`, and `tile-source.json`.
+  Desktop loaded 12 tiles and mobile loaded 4 tiles with the fallback hidden.
 
 ## Scope
 

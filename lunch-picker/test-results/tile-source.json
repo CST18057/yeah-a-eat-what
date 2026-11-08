@@ -1,0 +1,15 @@
+{
+  "sampleRequests": [
+    "https://webrd03.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x=1&y=1&z=2",
+    "https://webrd04.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x=2&y=1&z=2",
+    "https://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x=1&y=0&z=2",
+    "https://webrd03.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x=2&y=0&z=2",
+    "https://webrd04.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x=1&y=2&z=2"
+  ],
+  "expected": {
+    "lang": "zh_cn",
+    "size": "1",
+    "scale": "1",
+    "style": "8"
+  }
+}
