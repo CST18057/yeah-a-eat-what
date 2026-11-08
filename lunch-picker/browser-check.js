@@ -717,6 +717,9 @@ const tests = [
         );
       });
       await page.locator(".popup-food-image").scrollIntoViewIfNeeded();
+      await page
+        .locator(".popup-food-image")
+        .waitFor({ state: "visible" });
       assert.equal(await page.locator(".popup-food-image").isVisible(), true);
       assert.deepEqual(
         await page
@@ -807,6 +810,9 @@ const tests = [
         );
       });
       await page.locator(".popup-food-image").scrollIntoViewIfNeeded();
+      await page
+        .locator(".popup-food-image")
+        .waitFor({ state: "visible" });
       assert.equal(await page.locator(".popup-food-image").isVisible(), true);
       await page.screenshot({
         path: path.join(outputDir, "mobile-core.png"),
