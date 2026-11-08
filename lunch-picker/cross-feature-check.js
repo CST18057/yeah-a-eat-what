@@ -631,14 +631,27 @@ const tests = [
   },
 ];
 
+function selectTests(filter, availableTests = tests) {
+  if (!filter) {
+    return availableTests;
+  }
+  return availableTests.filter((test) => test.name.includes(filter));
+}
+
 async function main() {
   await fs.mkdir(outputDir, { recursive: true });
+  const selectedTests = selectTests(process.env.TEST_NAME_FILTER);
+  if (selectedTests.length === 0) {
+    console.error(
+      `No cross-feature tests matched TEST_NAME_FILTER="${process.env.TEST_NAME_FILTER}"`,
+    );
+    process.exitCode = 2;
+    return;
+  }
+
   const server = startServer();
   let browser;
   const report = [];
-  const selectedTests = process.env.TEST_NAME_FILTER
-    ? tests.filter((test) => test.name.includes(process.env.TEST_NAME_FILTER))
-    : tests;
 
   try {
     await waitForHttp(`${baseUrl}/api/regions`);
