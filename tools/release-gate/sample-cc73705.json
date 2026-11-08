@@ -1,0 +1,315 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-11-08T08:30:10.717Z",
+  "finishedAt": "2026-11-08T08:32:39.773Z",
+  "candidate": {
+    "repo": "https://github.com/CST18057/yeah-a-eat-what.git",
+    "requestedRef": "cc737051bcdd671f589b4e8301a4480e4634d059",
+    "commit": "cc737051bcdd671f589b4e8301a4480e4634d059",
+    "tree": "68caf8b51f4dbbae0007cc4de4d6b6fb01ec48a5",
+    "projectSubdir": "lunch-picker"
+  },
+  "environment": {
+    "node": "v22.23.4",
+    "npm": "12.2.2",
+    "git": "git version 2.43.0",
+    "platform": "linux-x64"
+  },
+  "projectSubdir": "lunch-picker",
+  "knownBlockers": [
+    "Keyboard pan invalidation fix is not present",
+    "Public-release compliance fixes are not present"
+  ],
+  "steps": [
+    {
+      "name": "clone candidate",
+      "command": "git clone --quiet --no-checkout https://github.com/CST18057/yeah-a-eat-what.git <temporary-checkout>/checkout",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 17555,
+      "stdoutTail": "",
+      "stderrTail": ""
+    },
+    {
+      "name": "checkout candidate ref",
+      "command": "git checkout --quiet --detach cc737051bcdd671f589b4e8301a4480e4634d059",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 13,
+      "stdoutTail": "",
+      "stderrTail": ""
+    },
+    {
+      "name": "tool versions",
+      "command": "git --version && node --version && npm --version",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 58,
+      "stdoutTail": "git version 2.43.0\nv22.23.4\n12.2.2",
+      "stderrTail": ""
+    },
+    {
+      "name": "resolve commit and tree",
+      "command": "git rev-parse HEAD && git rev-parse HEAD^{tree}",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 5,
+      "stdoutTail": "cc737051bcdd671f589b4e8301a4480e4634d059\n68caf8b51f4dbbae0007cc4de4d6b6fb01ec48a5",
+      "stderrTail": ""
+    },
+    {
+      "name": "preflight required scripts",
+      "command": null,
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 0,
+      "stdoutTail": "test, test:browser, test:cross-feature",
+      "stderrTail": ""
+    },
+    {
+      "name": "lockfile install",
+      "command": "npm ci",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1508,
+      "stdoutTail": "added 3 packages, and audited 4 packages in 1s\n\nfound 0 vulnerabilities",
+      "stderrTail": "npm notice run lunch-picker@0.5.0 postinstall\nnpm notice run playwright install chromium"
+    },
+    {
+      "name": "service tests",
+      "command": "npm test",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 279,
+      "stdoutTail": "TAP version 13\n# Subtest: catalog contains nine cities and forty-three traceable places\nok 1 - catalog contains nine cities and forty-three traceable places\n  ---\n  duration_ms: 0.972137\n  type: 'test'\n  ...\n# Subtest: catalog validation rejects an empty city\nok 2 - catalog validation rejects an empty city\n  ---\n  duration_ms: 0.217583\n  type: 'test'\n  ...\n# Subtest: every city has a licensed local food example image\nok 3 - every city has a licensed local food example image\n  ---\n  duration_ms: 37.929597\n  type: 'test'\n  ...\n# Subtest: GET /api/regions returns the nine-city contract\nok 4 - GET /api/regions returns the nine-city contract\n  ---\n  duration_ms: 3.758017\n  type: 'test'\n  ...\n# Subtest: new city endpoints expose the required place counts\nok 5 - new city endpoints expose the required place counts\n  ---\n  duration_ms: 4.522699\n  type: 'test'\n  ...\n# Subtest: repeated place requests are stable and return isolated data\nok 6 - repeated place requests are stable and return isolated data\n  ---\n  duration_ms: 2.181244\n  type: 'test'\n  ...\n# Subtest: GET /api/regions/:id/places returns the selected city and places\nok 7 - GET /api/regions/:id/places returns the selected city and places\n  ---\n  duration_ms: 2.058576\n  type: 'test'\n  ...\n# Subtest: unknown cities return a structured 404\nok 8 - unknown cities return a structured 404\n  ---\n  duration_ms: 1.020641\n  type: 'test'\n  ...\n# Subtest: Leaflet assets are served from the installed package\nok 9 - Leaflet assets are served from the installed package\n  ---\n  duration_ms: 3.404398\n  type: 'test'\n  ...\n# Subtest: POST /api/spin returns a place from the requested city\nok 10 - POST /api/spin returns a place from the requested city\n  ---\n  duration_ms: 3.289354\n  type: 'test'\n  ...\n# Subtest: spin selection is deterministic for an injected random source\nok 11 - spin selection is deterministic for an injected random source\n  ---\n  duration_ms: 0.146054\n  type: 'test'\n  ...\n# Subtest: POST /api/spin validates its JSON body\nok 12 - POST /api/spin validates its JSON body\n  ---\n  duration_ms: 1.977478\n  type: 'test'\n  ...\n# Subtest: POST /api/spin rejects oversized JSON bodies\nok 13 - POST /api/spin rejects oversized JSON bodies\n  ---\n  duration_ms: 1.026232\n  type: 'test'\n  ...\n# Subtest: API methods and routes fail predictably\nok 14 - API methods and routes fail predictably\n  ---\n  duration_ms: 1.494641\n  type: 'test'\n  ...\n# Subtest: GET /api/explore returns stable city-attributed places\nok 15 - GET /api/explore returns stable city-attributed places\n  ---\n  duration_ms: 2.087291\n  type: 'test'\n  ...\n# Subtest: GET /api/explore handles empty regions and truncation\nok 16 - GET /api/explore handles empty regions and truncation\n  ---\n  duration_ms: 2.005733\n  type: 'test'\n  ...\n# Subtest: GET /api/explore includes places on the bounds\nok 17 - GET /api/explore includes places on the bounds\n  ---\n  duration_ms: 1.460425\n  type: 'test'\n  ...\n# Subtest: GET /api/explore enforces default and maximum limits\nok 18 - GET /api/explore enforces default and maximum limits\n  ---\n  duration_ms: 1.570759\n  type: 'test'\n  ...\n# Subtest: GET /api/explore rejects invalid bounds and limits\nok 19 - GET /api/explore rejects invalid bounds and limits\n  ---\n  duration_ms: 7.767558\n  type: 'test'\n  ...\n# Subtest: GET /api/explore is stable and returns isolated data\nok 20 - GET /api/explore is stable and returns isolated data\n  ---\n  duration_ms: 1.637028\n  type: 'test'\n  ...\n# Subtest: GET /api/explore rate limits the 31st request in a fixed window\nok 21 - GET /api/explore rate limits the 31st request in a fixed window\n  ---\n  duration_ms: 17.226765\n  type: 'test'\n  ...\n# Subtest: GET /api/explore uses client IPs from trusted proxies only\nok 22 - GET /api/explore uses client IPs from trusted proxies only\n  ---\n  duration_ms: 4.3117\n  type: 'test'\n  ...\n# Subtest: GET /api/explore ignores forwarding headers from untrusted peers\nok 23 - GET /api/explore ignores forwarding headers from untrusted peers\n  ---\n  duration_ms: 2.004812\n  type: 'test'\n  ...\n# Subtest: GET /api/explore returns 504 after the internal deadline\nok 24 - GET /api/explore returns 504 after the internal deadline\n  ---\n  duration_ms: 6.759872\n  type: 'test'\n  ...\n1..24\n# tests 24\n# suites 0\n# pass 24\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 181.078955",
+      "stderrTail": "npm notice run lunch-picker@0.5.0 test\nnpm notice run node --test server.test.js"
+    },
+    {
+      "name": "browser tests",
+      "command": "npm run test:browser",
+      "status": "fail",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 32775,
+      "stdoutTail": "",
+      "stderrTail": "npm notice run lunch-picker@0.5.0 test:browser\nnpm notice run node browser-check.js\nFAIL desktop core flow\npage.waitForSelector: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('.popup-name') to be visible\n    64 × locator resolved to hidden <strong class=\"popup-name\">北京烤鸭</strong>\n\n    at Object.run (<temporary-checkout>/checkout/lunch-picker/browser-check.js:648:18)\n    at async main (<temporary-checkout>/checkout/lunch-picker/browser-check.js:2877:9) {\n  log: [\n    \"  - waiting for locator('.popup-name') to be visible\",\n    '    64 × locator resolved to hidden <strong class=\"popup-name\">北京烤鸭</strong>'\n  ],\n  name: 'TimeoutError'\n}"
+    },
+    {
+      "name": "cross-feature tests",
+      "command": "npm run test:cross-feature",
+      "status": "fail",
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 96838,
+      "stdoutTail": "PASS food image failure stays isolated while exploring\nPASS 320px mobile completes explore, candidate confirm, and spin\nCross-feature checks passed: 2/5",
+      "stderrTail": "npm notice run lunch-picker@0.5.0 test:cross-feature\nnpm notice run node cross-feature-check.js\nFAIL exploration is isolated from lunch state and candidate preview clears it\npage.waitForFunction: Timeout 30000ms exceeded.\n    at openTokyoCandidate (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:54:14)\n    at async Object.run (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:127:7)\n    at async main (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:519:9) {\n  log: [],\n  name: 'TimeoutError'\n}\nFAIL candidate preview aborts an in-flight exploration request\npage.waitForFunction: Timeout 30000ms exceeded.\n    at openTokyoCandidate (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:54:14)\n    at async Object.run (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:202:7)\n    at async main (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:519:9) {\n  log: [],\n  name: 'TimeoutError'\n}\nFAIL confirmation after exploration switches once and resets lunch state\npage.waitForFunction: Timeout 30000ms exceeded.\n    at openTokyoCandidate (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:54:14)\n    at async Object.run (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:266:7)\n    at async main (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:519:9) {\n  log: [],\n  name: 'TimeoutError'\n}"
+    },
+    {
+      "name": "diff check",
+      "command": "git diff --check",
+      "status": "pass",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 9,
+      "stdoutTail": "",
+      "stderrTail": ""
+    }
+  ],
+  "failureSummary": [
+    {
+      "step": "browser tests",
+      "exitCode": 1,
+      "timedOut": false,
+      "detail": "npm notice run lunch-picker@0.5.0 test:browser\nnpm notice run node browser-check.js\nFAIL desktop core flow\npage.waitForSelector: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('.popup-name') to be visible\n    64 × locator resolved to hidden <strong class=\"popup-name\">北京烤鸭</strong>\n\n    at Object.run (<temporary-checkout>/checkout/lunch-picker/browser-check.js:648:18)\n    at async main (<temporary-checkout>/checkout/lunch-picker/browser-check.js:2877:9) {\n  log: [\n    \"  - waiting for locator('.popup-name') to be visible\",\n    '    64 × locator resolved to hidden <strong class=\"popup-name\">北京烤鸭</strong>'\n  ],\n  name: 'TimeoutError'\n}"
+    },
+    {
+      "step": "cross-feature tests",
+      "exitCode": 1,
+      "timedOut": false,
+      "detail": "oCandidate (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:54:14)\n    at async Object.run (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:127:7)\n    at async main (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:519:9) {\n  log: [],\n  name: 'TimeoutError'\n}\nFAIL candidate preview aborts an in-flight exploration request\npage.waitForFunction: Timeout 30000ms exceeded.\n    at openTokyoCandidate (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:54:14)\n    at async Object.run (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:202:7)\n    at async main (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:519:9) {\n  log: [],\n  name: 'TimeoutError'\n}\nFAIL confirmation after exploration switches once and resets lunch state\npage.waitForFunction: Timeout 30000ms exceeded.\n    at openTokyoCandidate (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:54:14)\n    at async Object.run (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:266:7)\n    at async main (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:519:9) {\n  log: [],\n  name: 'TimeoutError'\n}"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "test-results/browser-report.json",
+      "bytes": 594,
+      "sha256": "008490a272c2273d5fedb52cda96ae26d8b7ddb318eea45d54305bd1bd68dc8d"
+    },
+    {
+      "path": "test-results/candidate-confirm-failure.json",
+      "bytes": 445,
+      "sha256": "58e78d871238ce1ae7c291d10249e541059508751c477751bf86c3f1e30880d1"
+    },
+    {
+      "path": "test-results/candidate-confirm-network.json",
+      "bytes": 296,
+      "sha256": "bac1d5f85f695182ab022993a4f57a7945eb2f314992d90aebdfba6dadd80c71"
+    },
+    {
+      "path": "test-results/candidate-confirm-race.json",
+      "bytes": 444,
+      "sha256": "c48ca00d417d5c5e91b81a5cf3d65491670ced2731397bc8f5941277e2e54f21"
+    },
+    {
+      "path": "test-results/candidate-confirm-world-view.json",
+      "bytes": 625,
+      "sha256": "b2013fd3d37d2a99551b51ca965cfc3ccf05d6e21f176fb99cf798ccbfffdbaa"
+    },
+    {
+      "path": "test-results/candidate-delayed-current-network.json",
+      "bytes": 560,
+      "sha256": "bc36dde1c5d567614ee1e544f7172db76f7bbe10349bfbc73065313587a8f9d3"
+    },
+    {
+      "path": "test-results/candidate-preview-network.json",
+      "bytes": 418,
+      "sha256": "08480719535ca7221823bea1e64736491f0d2180391a4b2e041316b291ca3c65"
+    },
+    {
+      "path": "test-results/city-search-results.json",
+      "bytes": 540,
+      "sha256": "ebe40966c665a32253a993db78517feb553e15daf5cd3d9cc8fee56825fdb57e"
+    },
+    {
+      "path": "test-results/cross-feature-confirm.json",
+      "bytes": 290,
+      "sha256": "91a3d45b6d07a6e1a4b788864cb051194225b6833c125ca2f634c502814f534c"
+    },
+    {
+      "path": "test-results/cross-feature-image-failure.json",
+      "bytes": 635,
+      "sha256": "8c167b795fcb81e7df1c21f35e1d2e0f816465ead159a82cb5b0ba566861eca8"
+    },
+    {
+      "path": "test-results/cross-feature-inflight-abort.json",
+      "bytes": 1122,
+      "sha256": "354e3f7fec95866b637aef0f9162d1486086ae43ca040b7595c9ebf7a3cb77d9"
+    },
+    {
+      "path": "test-results/cross-feature-isolation.json",
+      "bytes": 1264,
+      "sha256": "80a524d8e83061bab594001c33e1e15f202c4edb7101f3519434b9dc20eb1939"
+    },
+    {
+      "path": "test-results/cross-feature-mobile-320.png",
+      "bytes": 86386,
+      "sha256": "1e34cc30158fe86e3337987b6f4076d5e6eb857da370ffde2dcfbcfa337ae3d4"
+    },
+    {
+      "path": "test-results/cross-feature-mobile.json",
+      "bytes": 236,
+      "sha256": "605f140c15caed1baa45cc71865b3406f3968042342bb57b2aefd48234ab2622"
+    },
+    {
+      "path": "test-results/cross-feature-report.json",
+      "bytes": 2106,
+      "sha256": "9da7993df58b6bcba6ccce5bfe41148240751d8adb3622764c898aa059cc5c3a"
+    },
+    {
+      "path": "test-results/delayed-world-view-race.json",
+      "bytes": 1479,
+      "sha256": "a9ad1a4d66cdbd78f8d67a0164767edaea0c47d1bfc2f094b2fe931ef8e3b031"
+    },
+    {
+      "path": "test-results/explore-cache.json",
+      "bytes": 522,
+      "sha256": "c9777b00dcc9544f7e1853ca1624b1fadcdc6109dbe13e4fac11b45ba7ed7b06"
+    },
+    {
+      "path": "test-results/explore-client-timeout.json",
+      "bytes": 925,
+      "sha256": "557f3c8f2b3afc6fb57a9686cabf80b031bf5c86d1982606afb627bd806aa125"
+    },
+    {
+      "path": "test-results/explore-explicit.json",
+      "bytes": 1244,
+      "sha256": "1bce3f384a5b090420c9b3ca38f9a68f2467acff7e0e8fd3c740588772bf542d"
+    },
+    {
+      "path": "test-results/explore-last-write.json",
+      "bytes": 788,
+      "sha256": "287e47e239158fdada01dc902e15a85c5fd0543db65560d6fedcc7f68832580e"
+    },
+    {
+      "path": "test-results/explore-rate-limit.json",
+      "bytes": 1313,
+      "sha256": "f172091491794dbdb2eb04b7f9a6dc36566f6c4c095b4d746bde1f4fba31bb53"
+    },
+    {
+      "path": "test-results/explore-timeout-error.json",
+      "bytes": 1957,
+      "sha256": "3b47c0a324249ae1392c17607a041ec5d26981a61186fc9f13bac57be5410a1b"
+    },
+    {
+      "path": "test-results/live-explore-check.json",
+      "bytes": 474,
+      "sha256": "f673bf4cb17bfd3b610bc676f334a005e36bb9fe7bb9ee1fc3ac05d2764789df"
+    },
+    {
+      "path": "test-results/live-tile-check.json",
+      "bytes": 1960,
+      "sha256": "55be731ae4734c1ef4260db8cffbe114c2d0ef332c786e40ad920fb7cc8d0bd9"
+    },
+    {
+      "path": "test-results/network-city-switch.json",
+      "bytes": 531,
+      "sha256": "84d3a9bd37cb4ff2659f485d014783378ef2b9c91d9c034a35d3add33da870e9"
+    },
+    {
+      "path": "test-results/network-mobile-world.json",
+      "bytes": 415,
+      "sha256": "2fb98e14b4a9029a8ab8bff617ef54f74bf146f6cb65f62cc484e3a0a4f13513"
+    },
+    {
+      "path": "test-results/network-world-browse.json",
+      "bytes": 453,
+      "sha256": "871e7d7d0b53f3c2f5c1119b967a60df35264cb09b32b919eabd37dbd0ee2f21"
+    },
+    {
+      "path": "test-results/tile-source.json",
+      "bytes": 603,
+      "sha256": "37807a3322ecc969c830d40e937ebf9cea11c20f584cc07532a5e71756cf3717"
+    }
+  ],
+  "artifactCount": 28,
+  "releaseReady": false,
+  "verdict": "blocked",
+  "blockers": [
+    {
+      "kind": "known-blocker",
+      "reason": "Keyboard pan invalidation fix is not present"
+    },
+    {
+      "kind": "known-blocker",
+      "reason": "Public-release compliance fixes are not present"
+    },
+    {
+      "kind": "failed-gate",
+      "reason": "browser tests: .\nCall log:\n  - waiting for locator('.popup-name') to be visible\n    64 × locator resolved to hidden <strong class=\"popup-name\">北京烤鸭</strong>\n\n    at Object.run (<temporary-checkout>/checkout/lunch-picker/browser-check.js:648:18)\n    at async main (<temporary-checkout>/checkout/lunch-picker/browser-check.js:2877:9) {\n  log: [\n    \"  - waiting for locator('.popup-name') to be visible\",\n    '    64 × locator resolved to hidden <strong class=\"popup-name\">北京烤鸭</strong>'\n  ],\n  name: 'TimeoutError'\n}"
+    },
+    {
+      "kind": "failed-gate",
+      "reason": "cross-feature tests: eck.js:519:9) {\n  log: [],\n  name: 'TimeoutError'\n}\nFAIL confirmation after exploration switches once and resets lunch state\npage.waitForFunction: Timeout 30000ms exceeded.\n    at openTokyoCandidate (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:54:14)\n    at async Object.run (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:266:7)\n    at async main (<temporary-checkout>/checkout/lunch-picker/cross-feature-check.js:519:9) {\n  log: [],\n  name: 'TimeoutError'\n}"
+    }
+  ],
+  "workspaceRetained": false,
+  "workspacePath": null,
+  "resultFingerprint": "c51dd4dbb43771a45f78b4372ec482bfab670304fb034bb071512369ec5f8281"
+}
