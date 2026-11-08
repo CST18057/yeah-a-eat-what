@@ -1,34 +1,23 @@
-# v0.4.1 City Discovery Verification
+# v0.5.0 Region Exploration Verification
 
 Date: 2026-11-08
 
 ## Baseline
 
-- Parent: `main@55e0ecc793d67b8dcfa1ab11a9b5c9235085c780` (v0.4.0).
-
-## Tile Hotfix
-
-- Replaced the retired Gaode request that returned HTTP 404 with the current
-  `/appmaptile?lang=zh_cn&size=1&scale=1&style=8` endpoint.
-- Live checks against `webrd01` through `webrd04` returned HTTP 200,
-  `image/png`, and non-empty tile bodies.
-- Browser coverage asserts the generated tile URL contains the required
-  parameters; the existing failure-injection test still verifies map fallback.
-- Live browser evidence is stored in `test-results/live-tile-check.json`,
-  `live-tile-desktop.png`, `live-tile-mobile.png`, and `tile-source.json`.
-  Desktop loaded 12 tiles and mobile loaded 4 tiles with the fallback hidden.
+- Parent: `main@e419833e236e53c85b35e569d438f7426d138197` (v0.4.1).
 
 ## Scope
 
-- Added local city search across Chinese `name` and English `nameEn`.
-- Added NFKC, trim, case-insensitive English, and continuous Chinese substring
-  matching without a remote search request.
-- Added candidate preview from search results and city markers.
-- Added explicit confirm, cancel, close, Escape, and return behavior.
-- Confirmed city changes request places exactly once; same-city confirmation only
-  closes the preview.
-- Preserved map browsing, request ordering, delayed-response handling, failure
-  cleanup, and pending-spin invalidation from v0.2.2 and v0.3.0.
+- Added `GET /api/explore` over the existing 43 public places.
+- Added a world-view-only `探索此区域` action with outward 0.01° boundary
+  quantization.
+- Added a 5-second client timeout, abortable requests, last-request-wins
+  sequencing, and a 50-entry/30-second in-memory cache.
+- Added an independent exploration marker layer and popup source labels.
+- Added loading, dirty, ready, empty, truncated, too-large, rate-limited,
+  timeout, and error states with retry and clear actions.
+- Preserved city search, candidate preview, lunch selection, places, map
+  gestures, request ordering, and failure behavior.
 
 ## Commands
 
@@ -42,8 +31,8 @@ git diff --check
 ## Results
 
 - `npm ci`: passed with 0 vulnerabilities.
-- `npm test`: 13/13 passed.
-- `npm run test:browser`: 19/19 passed.
+- `npm test`: 23/23 passed.
+- `npm run test:browser`: 29/29 passed.
 - `git diff --check`: passed.
 
 Browser scenarios:
@@ -63,33 +52,41 @@ Browser scenarios:
 13. Delayed current places response does not close a candidate preview
 14. Tile failure keeps city discovery usable
 15. Mobile city discovery supports cancel and confirm
-16. Places failure clears stale marker and popup
-17. Out-of-order city responses keep the latest city
-18. Pending spin is discarded after city change
-19. Tile failure popup stays unobstructed on desktop and mobile
+16. Explicit exploration is dirty-gated and cached
+17. Explore cache expires after thirty seconds
+18. Explore empty and truncated states stay separate from lunch data
+19. Explore rejects oversized regions without a request
+20. Explore rate limit shows retry countdown
+21. Explore timeout and error states can retry
+22. Explore client timeout aborts and can retry
+23. Explore keeps the latest request and clears on city exit
+24. Mobile exploration supports touch drag, zoom, clear, and return
+25. Exploration controls fit the 320px mobile viewport
+26. Places failure clears stale marker and popup
+27. Out-of-order city responses keep the latest city
+28. Pending spin is discarded after city change
+29. Tile failure popup stays unobstructed on desktop and mobile
 
 ## Evidence
 
-The browser run writes `test-results/browser-report.json`,
-`network-world-browse.json`, `network-mobile-world.json`, and
-`network-city-switch.json`, plus desktop world, mobile world, New York,
-places-failure, and tile-failure popup screenshots. Generated screenshots are
-delivered as Raft attachments with the source patch.
+The browser run writes `test-results/browser-report.json` plus exploration
+screenshots `explore-ready.png`, `explore-too-large.png`, and
+`mobile-explore.png`. Network assertions capture initial page requests and
+verify that dragging, zooming, and world-view entry make zero `/api/explore`
+requests until the explicit button action.
 
-The delayed-view race evidence is stored in
-`test-results/delayed-world-view-race.json`; it covers both successful and
-failed places responses arriving after the user enters world view.
+A live non-mocked browser run against the real server returned HTTP 200 for a
+quantized South-East Asia region, rendered four public-place markers, and
+recorded the evidence in `live-explore-check.json` and
+`live-explore-ready.png`.
 
-City discovery screenshots include `city-search.png`, `candidate-preview.png`,
-`candidate-confirm.png`, `candidate-confirm-failure.png`,
-`world-view-pending-confirm.png`,
-`tile-failure-city-discovery.png`, `mobile-candidate-preview.png`, and
-`mobile-city-discovery.png`. Browser request logs include
-`city-search-results.json`, `candidate-preview-network.json`,
-`candidate-confirm-network.json`, `candidate-confirm-race.json`,
-`candidate-confirm-failure.json`, `candidate-confirm-world-view.json`, and
-`candidate-delayed-current-network.json`. The logs include spin request bodies
-so preview-time spin selection can be checked against the current city.
+Exploration state/network evidence is stored in `explore-explicit.json`,
+`explore-cache.json`, `explore-rate-limit.json`, `explore-timeout-error.json`,
+`explore-client-timeout.json`, and `explore-last-write.json`.
+
+The state dataset on `#explore-toolbar` records status, request ID, source,
+limit, totals, truncation, error code, retry seconds, quantized bounds, cache
+key, and update time for reproducible inspection.
 
 The local verification host required system browser libraries and a CJK font
 outside the repository. The GitHub Actions workflow installs Playwright browser

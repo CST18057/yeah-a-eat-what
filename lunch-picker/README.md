@@ -1,8 +1,8 @@
 # Lunch Picker
 
-v0.4.2 的城市发现版本，包含高德底图地址热修复和抽签结果美食图片。应用提供
-9 个城市、43 个 OpenStreetMap 公开地点、Leaflet 世界地图、城市搜索与候选预览、
-地点清单和随机午餐抽签。
+v0.5.0 的按区域探索版本，包含城市发现、抽签结果美食示例和显式区域探索。
+应用提供 9 个城市、43 个 OpenStreetMap 公开地点、Leaflet 世界地图、
+城市搜索与候选预览、区域探索、地点清单和随机午餐抽签。
 
 ## Run
 
@@ -26,7 +26,8 @@ git diff --check
 requests, repeated requests, and deterministic random selection. The browser
 suite covers desktop and mobile flows, cross-continent map browsing, city search
 normalization, candidate preview/confirm/cancel, request ordering, places
-failure cleanup, pending-spin invalidation, and tile-failure fallbacks.
+failure cleanup, explicit region exploration, cache/error states,
+pending-spin invalidation, and tile-failure fallbacks.
 
 Playwright downloads Chromium during `npm ci`. On a minimal Linux host, install
 the browser's system libraries once with:
@@ -40,6 +41,8 @@ npx playwright install-deps chromium
 - `GET /api/regions` returns `{ regions: [...] }`.
 - `GET /api/regions/:id/places` returns `{ region, places }`.
 - `POST /api/spin` with `{ "regionId": "beijing" }` returns `{ region, place }`.
+- `GET /api/explore?west=&south=&east=&north=&limit=` returns the public places
+  inside a bounded region.
 
 Each place includes a `food` object with a display dish, local image path,
 descriptive alt text, credit text, and Wikimedia Commons source metadata.
@@ -87,6 +90,15 @@ metadata.
   caption.
 - A pending places response cannot close a candidate preview or overwrite its
   map caption.
+- `探索此区域` is available only in world view. The map must be moved or zoomed
+  before the action becomes meaningful, and those gestures never request data.
+- Exploration uses a quantized 0.01° map boundary, a 5-second client timeout,
+  last-request-wins sequencing, and a 30-second in-memory cache capped at 50
+  entries.
+- Exploration markers use an independent map layer and do not change the lunch
+  city, result, place list, or lunch markers.
+- Leaving world view, opening a candidate, or switching city aborts exploration
+  and clears the exploration layer.
 
 ## Failure Behavior
 
@@ -104,3 +116,6 @@ metadata.
   image and credit. The map opens on the same selected place, and its popup
   shows the same image. If the image cannot load, both surfaces keep the place,
   dish name, and accessible fallback text.
+- Exploration reports loading, empty, truncated, too-large, rate-limited,
+  timeout, and error states. Oversized regions require zooming in instead of
+  sending a request.

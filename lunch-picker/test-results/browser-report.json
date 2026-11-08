@@ -2,27 +2,27 @@
   {
     "name": "desktop core flow",
     "status": "passed",
-    "durationMs": 586
+    "durationMs": 581
   },
   {
     "name": "mobile core flow",
     "status": "passed",
-    "durationMs": 608
+    "durationMs": 610
   },
   {
     "name": "desktop world browsing does not change lunch state",
     "status": "passed",
-    "durationMs": 1637
+    "durationMs": 1625
   },
   {
     "name": "mobile world browsing supports pinch and return",
     "status": "passed",
-    "durationMs": 1167
+    "durationMs": 1162
   },
   {
     "name": "four new cities switch map and places coherently",
     "status": "passed",
-    "durationMs": 872
+    "durationMs": 855
   },
   {
     "name": "delayed places responses preserve the world view",
@@ -32,37 +32,37 @@
   {
     "name": "city search follows normalization rules without side effects",
     "status": "passed",
-    "durationMs": 444
+    "durationMs": 445
   },
   {
     "name": "candidate preview stays local across cancel, escape, and return",
     "status": "passed",
-    "durationMs": 717
+    "durationMs": 733
   },
   {
     "name": "candidate confirmation switches once and resets lunch state",
     "status": "passed",
-    "durationMs": 605
+    "durationMs": 574
   },
   {
     "name": "rapid confirms keep the latest city only",
     "status": "passed",
-    "durationMs": 1344
+    "durationMs": 1341
   },
   {
     "name": "world view survives a pending candidate confirmation",
     "status": "passed",
-    "durationMs": 1219
+    "durationMs": 1220
   },
   {
     "name": "candidate confirmation failure keeps the new city and remains usable",
     "status": "passed",
-    "durationMs": 439
+    "durationMs": 442
   },
   {
     "name": "delayed current places response does not close a candidate preview",
     "status": "passed",
-    "durationMs": 1345
+    "durationMs": 1355
   },
   {
     "name": "tile failure keeps city discovery usable",
@@ -75,28 +75,78 @@
     "durationMs": 594
   },
   {
+    "name": "explicit exploration is dirty-gated and cached",
+    "status": "passed",
+    "durationMs": 1684
+  },
+  {
+    "name": "explore cache expires after thirty seconds",
+    "status": "passed",
+    "durationMs": 553
+  },
+  {
+    "name": "explore empty and truncated states stay separate from lunch data",
+    "status": "passed",
+    "durationMs": 914
+  },
+  {
+    "name": "explore rejects oversized regions without a request",
+    "status": "passed",
+    "durationMs": 543
+  },
+  {
+    "name": "explore rate limit shows retry countdown",
+    "status": "passed",
+    "durationMs": 2504
+  },
+  {
+    "name": "explore timeout and error states can retry",
+    "status": "passed",
+    "durationMs": 599
+  },
+  {
+    "name": "explore client timeout aborts and can retry",
+    "status": "passed",
+    "durationMs": 5501
+  },
+  {
+    "name": "explore keeps the latest request and clears on city exit",
+    "status": "passed",
+    "durationMs": 1674
+  },
+  {
+    "name": "mobile exploration supports touch drag, zoom, clear, and return",
+    "status": "passed",
+    "durationMs": 1607
+  },
+  {
+    "name": "exploration controls fit the 320px mobile viewport",
+    "status": "passed",
+    "durationMs": 901
+  },
+  {
     "name": "places failure clears stale marker and popup",
     "status": "passed",
-    "durationMs": 344
+    "durationMs": 364
   },
   {
     "name": "out-of-order city responses keep the latest city",
     "status": "passed",
-    "durationMs": 1206
+    "durationMs": 1204
   },
   {
     "name": "pending spin is discarded after city switch",
     "status": "passed",
-    "durationMs": 998
+    "durationMs": 1016
   },
   {
     "name": "food image failures keep the selected result and map binding",
     "status": "passed",
-    "durationMs": 1125
+    "durationMs": 942
   },
   {
     "name": "tile failure popup stays unobstructed on desktop and mobile",
     "status": "passed",
-    "durationMs": 1807
+    "durationMs": 1805
   }
 ]

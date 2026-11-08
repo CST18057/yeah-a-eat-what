@@ -20,7 +20,7 @@
         </a>
         <div class="header-meta">
           <span class="status-dot" aria-hidden="true"></span>
-          <span id="app-version">v0.4.2 · 美食示例图</span>
+          <span id="app-version">v0.5.0 · 公开地点示例</span>
         </div>
       </div>
     </header>
@@ -177,6 +177,45 @@
                 aria-label="关闭候选预览"
               >
                 ×
+              </button>
+            </div>
+          </section>
+          <section
+            id="explore-toolbar"
+            class="explore-toolbar"
+            aria-live="polite"
+            hidden
+          >
+            <div class="explore-toolbar-copy">
+              <p class="explore-kicker">区域探索</p>
+              <p id="explore-status" class="explore-status">
+                拖动或缩放地图后，点击探索。
+              </p>
+              <p id="explore-meta" class="explore-meta" hidden></p>
+            </div>
+            <div class="explore-actions">
+              <button
+                id="explore-button"
+                class="explore-button"
+                type="button"
+              >
+                探索此区域
+              </button>
+              <button
+                id="explore-retry-button"
+                class="explore-button explore-secondary"
+                type="button"
+                hidden
+              >
+                重试
+              </button>
+              <button
+                id="explore-clear-button"
+                class="explore-button explore-secondary"
+                type="button"
+                hidden
+              >
+                清除
               </button>
             </div>
           </section>

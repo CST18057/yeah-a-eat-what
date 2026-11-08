@@ -109,10 +109,34 @@ function placesFor(regionId) {
   }));
 }
 
-async function routeJson(route, status, payload) {
+function explorePlacesForBounds(bounds, count = 3, batch = 1) {
+  return Array.from({ length: count }, (_, index) => ({
+    id: `explore-${batch}-${index + 1}`,
+    name: `探索地点 ${batch}-${index + 1}`,
+    cityId: "beijing",
+    cityName: "北京",
+    lat:
+      bounds.south +
+      ((index + 1) / (count + 1)) * (bounds.north - bounds.south),
+    lng:
+      bounds.west +
+      ((index + 1) / (count + 1)) * (bounds.east - bounds.west),
+    cuisine: "公开示例",
+    address: "探索区域示例地址",
+    source: {
+      provider: "OpenStreetMap",
+      type: "node",
+      id: 9000 + index,
+      url: `https://www.openstreetmap.org/node/${9000 + index}`,
+    },
+  }));
+}
+
+async function routeJson(route, status, payload, headers = {}) {
   await route.fulfill({
     status,
     contentType: "application/json; charset=utf-8",
+    headers,
     body: JSON.stringify(payload),
   });
 }
@@ -155,6 +179,122 @@ async function installApiRoutes(page, options = {}) {
     await routeJson(route, 200, {
       region,
       place: places[0],
+    });
+  });
+
+  let exploreCallCount = 0;
+  await page.route(/\/api\/explore(?:\?.*)?$/, async (route) => {
+    exploreCallCount += 1;
+    const modes = options.exploreModes || [];
+    const mode =
+      modes[Math.min(exploreCallCount - 1, modes.length - 1)] ||
+      options.exploreMode ||
+      "success";
+    const configuredDelay =
+      options.exploreDelayByCall?.[exploreCallCount - 1] ??
+      options.exploreDelay ??
+      0;
+    if (configuredDelay || mode === "network_timeout") {
+      await new Promise((resolve) =>
+        setTimeout(
+          resolve,
+          mode === "network_timeout" ? 6000 : configuredDelay,
+        ),
+      );
+    }
+    if (mode === "network_timeout") {
+      try {
+        await route.abort("timedout");
+      } catch {}
+      return;
+    }
+
+    const url = new URL(route.request().url());
+    const bounds = {
+      west: Number(url.searchParams.get("west")),
+      south: Number(url.searchParams.get("south")),
+      east: Number(url.searchParams.get("east")),
+      north: Number(url.searchParams.get("north")),
+    };
+    const limit = Number(url.searchParams.get("limit") || 40);
+
+    if (mode === "empty") {
+      await routeJson(route, 200, {
+        version: "0.5.0",
+        bounds,
+        limit,
+        total: 0,
+        returned: 0,
+        truncated: false,
+        places: [],
+      });
+      return;
+    }
+    if (mode === "truncated") {
+      const places = explorePlacesForBounds(bounds, 2, exploreCallCount);
+      await routeJson(route, 200, {
+        version: "0.5.0",
+        bounds,
+        limit,
+        total: 7,
+        returned: places.length,
+        truncated: true,
+        places,
+      });
+      return;
+    }
+    if (mode === "too_large") {
+      await routeJson(route, 400, {
+        error: {
+          code: "REGION_TOO_LARGE",
+          message: "Region is too large",
+        },
+      });
+      return;
+    }
+    if (mode === "rate_limited") {
+      await routeJson(
+        route,
+        429,
+        {
+          error: {
+            code: "RATE_LIMITED",
+            message: "Too many explore requests",
+          },
+          retryAfterSeconds: 2,
+        },
+        { "Retry-After": "2" },
+      );
+      return;
+    }
+    if (mode === "server_timeout") {
+      await routeJson(route, 504, {
+        error: {
+          code: "EXPLORE_TIMEOUT",
+          message: "Explore request timed out",
+        },
+      });
+      return;
+    }
+    if (mode === "error") {
+      await routeJson(route, 500, {
+        error: {
+          code: "INTERNAL_ERROR",
+          message: "Explore request failed",
+        },
+      });
+      return;
+    }
+
+    const places = explorePlacesForBounds(bounds, 3, exploreCallCount);
+    await routeJson(route, 200, {
+      version: "0.5.0",
+      bounds,
+      limit,
+      total: places.length,
+      returned: places.length,
+      truncated: false,
+      places,
     });
   });
 
@@ -240,6 +380,7 @@ async function openPage(browser, viewport, options) {
       apiRequests.push({
         method: request.method(),
         pathname,
+        url: request.url(),
         body: request.postData() || "",
       });
     }
@@ -280,6 +421,70 @@ async function mapState(page) {
       lng: Number(map.dataset.centerLng),
     };
   });
+}
+
+async function exploreState(page) {
+  return page.locator("#explore-toolbar").evaluate((element) => ({
+    hidden: element.hidden,
+    status: element.dataset.status,
+    requestId: element.dataset.requestId,
+    source: element.dataset.source,
+    limit: Number(element.dataset.limit),
+    total: Number(element.dataset.total),
+    returned: Number(element.dataset.returned),
+    truncated: element.dataset.truncated === "true",
+    errorCode: element.dataset.errorCode,
+    retryAfterSeconds:
+      element.dataset.retryAfterSeconds === ""
+        ? null
+        : Number(element.dataset.retryAfterSeconds),
+    bounds: element.dataset.bounds ? JSON.parse(element.dataset.bounds) : null,
+    cacheKey: element.dataset.cacheKey,
+    updatedAt: Number(element.dataset.updatedAt),
+  }));
+}
+
+async function zoomWorldMapWithWheel(page, targetZoom = 4) {
+  await page.locator("#map").hover();
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    const zoom = Number(
+      await page.locator("#map").getAttribute("data-zoom"),
+    );
+    if (zoom >= targetZoom) {
+      return;
+    }
+    await page.mouse.wheel(0, -700);
+    await page.waitForTimeout(120);
+  }
+  throw new Error(`Map did not reach zoom ${targetZoom}`);
+}
+
+async function zoomWorldMapWithTouch(context, page, targetZoom = 4) {
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const zoom = Number(
+      await page.locator("#map").getAttribute("data-zoom"),
+    );
+    if (zoom >= targetZoom) {
+      return;
+    }
+    await pinchToZoom(context, page);
+    await page.waitForTimeout(150);
+  }
+  throw new Error(`Touch map did not reach zoom ${targetZoom}`);
+}
+
+async function zoomWorldMapWithControls(page, targetZoom = 4) {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const zoom = Number(
+      await page.locator("#map").getAttribute("data-zoom"),
+    );
+    if (zoom >= targetZoom) {
+      return;
+    }
+    await page.locator(".leaflet-control-zoom-in").click();
+    await page.waitForTimeout(150);
+  }
+  throw new Error(`Map controls did not reach zoom ${targetZoom}`);
 }
 
 function intersectionArea(first, second) {
@@ -1701,6 +1906,706 @@ const tests = [
         path: path.join(outputDir, "mobile-city-discovery.png"),
         fullPage: true,
       });
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "explicit exploration is dirty-gated and cached",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { exploreDelay: 200 },
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+
+      const selectedCity = await page.locator("#city-select").inputValue();
+      const placesText = await page.locator("#places-list").textContent();
+      const resultText = await page.locator("#result-name").textContent();
+      assert.equal(await page.locator("#explore-toolbar").isVisible(), false);
+      apiRequests.length = 0;
+
+      await page.locator("#world-view-button").click();
+      await page.waitForFunction(
+        () => !document.querySelector("#explore-toolbar")?.hidden,
+      );
+      assert.equal((await exploreState(page)).status, "idle");
+      assert.equal(
+        apiRequests.filter((request) => request.pathname === "/api/explore")
+          .length,
+        0,
+      );
+
+      await dragMapWithMouse(page, 80, 40);
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "dirty",
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 0);
+      await zoomWorldMapWithWheel(page, 4);
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "dirty",
+      );
+      assert.equal(
+        apiRequests.filter((request) => request.pathname === "/api/explore")
+          .length,
+        0,
+      );
+
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "loading",
+      );
+      assert.equal(
+        await page.locator("#explore-button").getAttribute("aria-busy"),
+        "true",
+      );
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+
+      const readyState = await exploreState(page);
+      assert.equal(readyState.source, "network");
+      assert.equal(readyState.total, 3);
+      assert.equal(readyState.returned, 3);
+      assert.equal(readyState.limit, 40);
+      assert.equal(await page.locator(".explore-marker").count(), 3);
+      assert.equal(await page.locator(".place-marker-icon").count(), 5);
+      assert.equal(await page.locator(".city-marker").count(), 9);
+      assert.equal(await page.locator("#city-select").inputValue(), selectedCity);
+      assert.equal(await page.locator("#places-list").textContent(), placesText);
+      assert.equal(await page.locator("#result-name").textContent(), resultText);
+      assert.equal(
+        await page
+          .locator("#world-view-button")
+          .getAttribute("aria-pressed"),
+        "true",
+      );
+
+      const exploreRequests = apiRequests.filter(
+        (request) => request.pathname === "/api/explore",
+      );
+      assert.equal(exploreRequests.length, 1);
+      const requestUrl = new URL(exploreRequests[0].url);
+      for (const name of ["west", "south", "east", "north"]) {
+        assert.match(requestUrl.searchParams.get(name), /^-?\d+\.\d{2}$/);
+      }
+      assert.equal(requestUrl.searchParams.get("limit"), "40");
+      await page.screenshot({
+        path: path.join(outputDir, "explore-ready.png"),
+        fullPage: true,
+      });
+      await page.locator(".explore-marker").first().click();
+      await page.waitForSelector(".explore-popup-name");
+      assert.match(
+        await page.locator(".explore-popup-source").textContent(),
+        /探索地点 · OpenStreetMap/,
+      );
+      await page.locator(".leaflet-popup-close-button").click();
+
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.source ===
+          "cache",
+      );
+      const cacheState = await exploreState(page);
+      assert.equal(
+        apiRequests.filter((request) => request.pathname === "/api/explore")
+          .length,
+        1,
+      );
+
+      await page.locator("#explore-clear-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "idle",
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 0);
+      await page.locator("#return-city-button").click();
+      assert.equal(await page.locator("#explore-toolbar").isVisible(), false);
+      await fs.writeFile(
+        path.join(outputDir, "explore-explicit.json"),
+        `${JSON.stringify(
+          {
+            selectedCity,
+            automaticExploreRequestsBeforeClick: 0,
+            networkState: readyState,
+            cacheState,
+            exploreRequests,
+            clearResetStatus: "idle",
+            currentCityExitHidden: true,
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "explore cache expires after thirty seconds",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        {},
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+      apiRequests.length = 0;
+
+      await page.locator("#world-view-button").click();
+      await zoomWorldMapWithWheel(page, 4);
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.source ===
+          "cache",
+      );
+      assert.equal(
+        apiRequests.filter((request) => request.pathname === "/api/explore")
+          .length,
+        1,
+      );
+
+      await page.evaluate(() => {
+        window.__realDateNow = Date.now;
+        const base = Date.now();
+        Date.now = () => base + 31000;
+      });
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.source ===
+          "network",
+      );
+      assert.equal(
+        apiRequests.filter((request) => request.pathname === "/api/explore")
+          .length,
+        2,
+      );
+      assert.deepEqual(
+        await page
+          .locator(".explore-marker")
+          .evaluateAll((markers) =>
+            markers.map((marker) => marker.dataset.exploreId),
+          ),
+        ["explore-2-1", "explore-2-2", "explore-2-3"],
+      );
+      await fs.writeFile(
+        path.join(outputDir, "explore-cache.json"),
+        `${JSON.stringify(
+          {
+            ttlSeconds: 30,
+            requestsBeforeExpiry: 1,
+            requestsAfterExpiry: 2,
+            finalState: await exploreState(page),
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      await page.evaluate(() => {
+        Date.now = window.__realDateNow;
+        delete window.__realDateNow;
+      });
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "explore empty and truncated states stay separate from lunch data",
+    async run(browser) {
+      const scenarios = [
+        {
+          mode: "empty",
+          status: "empty",
+          returned: 0,
+          total: 0,
+          markers: 0,
+          text: "当前区域没有公开地点",
+        },
+        {
+          mode: "truncated",
+          status: "truncated",
+          returned: 2,
+          total: 7,
+          markers: 2,
+          text: "显示前 2 个，共 7 个",
+        },
+      ];
+
+      for (const scenario of scenarios) {
+        const { context, page, pageErrors } = await openPage(
+          browser,
+          { width: 1280, height: 900 },
+          { exploreMode: scenario.mode },
+        );
+        await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+        await waitForCityReady(page);
+        await waitForMarkers(page);
+        await waitForCityMarkers(page);
+        const selectedCity = await page.locator("#city-select").inputValue();
+        const placesText = await page.locator("#places-list").textContent();
+
+        await page.locator("#world-view-button").click();
+        await zoomWorldMapWithWheel(page, 4);
+        await page.locator("#explore-button").click();
+        await page.waitForFunction(
+          (expectedStatus) =>
+            document.querySelector("#explore-toolbar")?.dataset.status ===
+            expectedStatus,
+          scenario.status,
+        );
+        const current = await exploreState(page);
+        assert.equal(current.total, scenario.total);
+        assert.equal(current.returned, scenario.returned);
+        assert.equal(current.truncated, scenario.status === "truncated");
+        assert.equal(await page.locator(".explore-marker").count(), scenario.markers);
+        assert.match(
+          await page.locator("#explore-status").textContent(),
+          new RegExp(scenario.text),
+        );
+        assert.equal(await page.locator("#city-select").inputValue(), selectedCity);
+        assert.equal(await page.locator("#places-list").textContent(), placesText);
+        assert.deepEqual(pageErrors, []);
+        await context.close();
+      }
+    },
+  },
+  {
+    name: "explore rejects oversized regions without a request",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        {},
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+      apiRequests.length = 0;
+
+      await page.locator("#world-view-button").click();
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "too_large",
+      );
+      assert.match(
+        await page.locator("#explore-status").textContent(),
+        /区域过大，请放大地图后重试/,
+      );
+      assert.equal(
+        apiRequests.filter((request) => request.pathname === "/api/explore")
+          .length,
+        0,
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 0);
+      await page.screenshot({
+        path: path.join(outputDir, "explore-too-large.png"),
+        fullPage: true,
+      });
+
+      await zoomWorldMapWithWheel(page, 4);
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "dirty",
+      );
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 3);
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "explore rate limit shows retry countdown",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { exploreModes: ["rate_limited", "success"] },
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+      apiRequests.length = 0;
+
+      await page.locator("#world-view-button").click();
+      await zoomWorldMapWithWheel(page, 4);
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "rate_limited",
+      );
+      const limited = await exploreState(page);
+      assert.ok(limited.retryAfterSeconds > 0);
+      assert.match(
+        await page.locator("#explore-status").textContent(),
+        /请求过于频繁，请在 \d+ 秒后重试/,
+      );
+      assert.equal(await page.locator("#explore-retry-button").isVisible(), true);
+      assert.equal(await page.locator("#explore-retry-button").isDisabled(), true);
+      assert.equal(await page.locator(".explore-marker").count(), 0);
+
+      await page.waitForFunction(
+        () =>
+          Number(
+            document.querySelector("#explore-toolbar")?.dataset
+              .retryAfterSeconds,
+          ) === 0,
+        null,
+        { timeout: 5000 },
+      );
+      assert.equal(
+        await page.locator("#explore-retry-button").isDisabled(),
+        false,
+      );
+      await page.locator("#explore-retry-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 3);
+      assert.equal(
+        apiRequests.filter((request) => request.pathname === "/api/explore")
+          .length,
+        2,
+      );
+      await fs.writeFile(
+        path.join(outputDir, "explore-rate-limit.json"),
+        `${JSON.stringify(
+          {
+            limitedState: limited,
+            finalState: await exploreState(page),
+            exploreRequests: apiRequests.filter(
+              (request) => request.pathname === "/api/explore",
+            ),
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "explore timeout and error states can retry",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { exploreModes: ["server_timeout", "error", "success"] },
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+
+      await page.locator("#world-view-button").click();
+      await zoomWorldMapWithWheel(page, 4);
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "timeout",
+      );
+      const timeoutState = await exploreState(page);
+      assert.equal(await page.locator("#explore-retry-button").isVisible(), true);
+      await page.locator("#explore-retry-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "error",
+      );
+      const errorState = await exploreState(page);
+      await page.locator("#explore-retry-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      assert.equal(
+        apiRequests.filter((request) => request.pathname === "/api/explore")
+          .length,
+        3,
+      );
+      await fs.writeFile(
+        path.join(outputDir, "explore-timeout-error.json"),
+        `${JSON.stringify(
+          {
+            timeoutState,
+            errorState,
+            finalState: await exploreState(page),
+            exploreRequests: apiRequests.filter(
+              (request) => request.pathname === "/api/explore",
+            ),
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "explore client timeout aborts and can retry",
+    async run(browser) {
+      const { context, page, pageErrors } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { exploreModes: ["network_timeout", "success"] },
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+
+      await page.locator("#world-view-button").click();
+      await zoomWorldMapWithWheel(page, 4);
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "timeout",
+        null,
+        { timeout: 8000 },
+      );
+      const timeoutState = await exploreState(page);
+      assert.equal(await page.locator("#explore-retry-button").isVisible(), true);
+      await page.locator("#explore-retry-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 3);
+      await fs.writeFile(
+        path.join(outputDir, "explore-client-timeout.json"),
+        `${JSON.stringify(
+          {
+            timeoutState,
+            finalState: await exploreState(page),
+            clientTimeoutMs: 5000,
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "explore keeps the latest request and clears on city exit",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { exploreDelayByCall: [700, 100] },
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+      const selectedCity = await page.locator("#city-select").inputValue();
+      const placesText = await page.locator("#places-list").textContent();
+      apiRequests.length = 0;
+
+      await page.locator("#world-view-button").click();
+      await zoomWorldMapWithWheel(page, 4);
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "loading",
+      );
+      await dragMapWithMouse(page, 60, 30);
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      assert.deepEqual(
+        await page
+          .locator(".explore-marker")
+          .evaluateAll((markers) =>
+            markers.map((marker) => marker.dataset.exploreId),
+          ),
+        ["explore-2-1", "explore-2-2", "explore-2-3"],
+      );
+      assert.equal(await page.locator("#city-select").inputValue(), selectedCity);
+      assert.equal(await page.locator("#places-list").textContent(), placesText);
+      assert.equal(
+        apiRequests.filter((request) => request.pathname === "/api/explore")
+          .length,
+        2,
+      );
+
+      await page.locator("#return-city-button").click();
+      await page.waitForFunction(
+        () => document.querySelector("#explore-toolbar")?.hidden === true,
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 0);
+
+      await page.locator("#world-view-button").click();
+      await zoomWorldMapWithWheel(page, 4);
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      await page.selectOption("#city-select", "shanghai");
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.hidden === true &&
+          document.querySelector("#city-select")?.value === "shanghai",
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 0);
+      await fs.writeFile(
+        path.join(outputDir, "explore-last-write.json"),
+        `${JSON.stringify(
+          {
+            selectedCityBefore: selectedCity,
+            latestMarkerIds: [
+              "explore-2-1",
+              "explore-2-2",
+              "explore-2-3",
+            ],
+            exploreRequests: apiRequests.filter(
+              (request) => request.pathname === "/api/explore",
+            ),
+            cityAfterSwitch: "shanghai",
+            layerCleared: true,
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "mobile exploration supports touch drag, zoom, clear, and return",
+    async run(browser) {
+      const { context, page, pageErrors } = await openPage(
+        browser,
+        { width: 390, height: 844 },
+        {},
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+
+      await page.locator("#world-view-button").tap();
+      await page.waitForFunction(
+        () => !document.querySelector("#explore-toolbar")?.hidden,
+      );
+      await zoomWorldMapWithTouch(context, page, 4);
+      await dragMapWithTouch(context, page, 45, 20);
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "dirty",
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 0);
+      await assertNoOverflow(page);
+
+      await page.locator("#explore-button").tap();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 3);
+      await assertNoOverflow(page);
+      await page.screenshot({
+        path: path.join(outputDir, "mobile-explore.png"),
+        fullPage: true,
+      });
+
+      await page.locator("#explore-clear-button").tap();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "idle",
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 0);
+      await page.locator("#return-city-button").tap();
+      assert.equal(await page.locator("#explore-toolbar").isVisible(), false);
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "exploration controls fit the 320px mobile viewport",
+    async run(browser) {
+      const { context, page, pageErrors } = await openPage(
+        browser,
+        { width: 320, height: 568 },
+        {},
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+
+      await page.locator("#world-view-button").tap();
+      await page.waitForFunction(
+        () => !document.querySelector("#explore-toolbar")?.hidden,
+      );
+      await assertNoOverflow(page);
+      await zoomWorldMapWithControls(page, 4);
+      await page.locator("#explore-button").tap();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      await assertNoOverflow(page);
+      assert.equal(await page.locator(".explore-marker").count(), 3);
+      await page.locator("#explore-clear-button").tap();
+      await page.locator("#return-city-button").tap();
+      await assertNoOverflow(page);
       assert.deepEqual(pageErrors, []);
       await context.close();
     },

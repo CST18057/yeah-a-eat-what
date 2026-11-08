@@ -1,0 +1,54 @@
+{
+  "selectedCity": "beijing",
+  "automaticExploreRequestsBeforeClick": 0,
+  "networkState": {
+    "hidden": false,
+    "status": "ready",
+    "requestId": "5",
+    "source": "network",
+    "limit": 40,
+    "total": 3,
+    "returned": 3,
+    "truncated": false,
+    "errorCode": "",
+    "retryAfterSeconds": null,
+    "bounds": {
+      "west": -13.58,
+      "south": -11.92,
+      "east": 12.18,
+      "north": 13.76
+    },
+    "cacheKey": "explore:v1:-13.58:-11.92:12.18:13.76:40",
+    "updatedAt": 1794122820901
+  },
+  "cacheState": {
+    "hidden": false,
+    "status": "ready",
+    "requestId": "6",
+    "source": "cache",
+    "limit": 40,
+    "total": 3,
+    "returned": 3,
+    "truncated": false,
+    "errorCode": "",
+    "retryAfterSeconds": null,
+    "bounds": {
+      "west": -13.58,
+      "south": -11.92,
+      "east": 12.18,
+      "north": 13.76
+    },
+    "cacheKey": "explore:v1:-13.58:-11.92:12.18:13.76:40",
+    "updatedAt": 1794122821145
+  },
+  "exploreRequests": [
+    {
+      "method": "GET",
+      "pathname": "/api/explore",
+      "url": "http://127.0.0.1:4174/api/explore?west=-13.58&south=-11.92&east=12.18&north=13.76&limit=40",
+      "body": ""
+    }
+  ],
+  "clearResetStatus": "idle",
+  "currentCityExitHidden": true
+}

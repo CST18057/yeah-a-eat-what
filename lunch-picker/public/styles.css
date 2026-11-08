@@ -705,6 +705,99 @@ select:disabled {
   background: rgba(23, 33, 27, 0.07);
 }
 
+.explore-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 24px;
+  background: #eaf2f7;
+  border-top: 1px solid #c8dbe6;
+  border-bottom: 1px solid #c8dbe6;
+}
+
+.explore-toolbar[hidden] {
+  display: none;
+}
+
+.explore-toolbar-copy {
+  min-width: 0;
+}
+
+.explore-kicker {
+  margin: 0 0 5px;
+  color: #356881;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.explore-status,
+.explore-meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.explore-status {
+  color: var(--ink);
+}
+
+.explore-status[data-tone="error"] {
+  color: #a43b26;
+}
+
+.explore-meta {
+  margin-top: 3px;
+}
+
+.explore-meta[hidden] {
+  display: none;
+}
+
+.explore-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+}
+
+.explore-button {
+  min-height: 38px;
+  padding: 0 12px;
+  color: #fffdf5;
+  font-size: 12px;
+  font-weight: 800;
+  background: #356881;
+  border: 1px solid #356881;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.explore-button:hover:not(:disabled) {
+  background: #28546a;
+}
+
+.explore-button:disabled {
+  color: #69767b;
+  background: #dce6ea;
+  border-color: #c6d6dd;
+  cursor: default;
+}
+
+.explore-secondary {
+  color: #28546a;
+  background: #f8fbfc;
+  border-color: #b8ced8;
+}
+
+.explore-secondary:hover:not(:disabled) {
+  color: #1e4355;
+  background: #e4eef2;
+}
+
 .map-stage {
   position: relative;
   flex: 1;
@@ -847,6 +940,10 @@ select:disabled {
 
 .city-marker-candidate {
   filter: drop-shadow(0 3px 7px rgba(242, 181, 68, 0.58));
+}
+
+.explore-marker {
+  filter: drop-shadow(0 2px 5px rgba(53, 104, 129, 0.42));
 }
 
 .leaflet-control-zoom a {
@@ -1043,6 +1140,22 @@ select:disabled {
     flex-direction: column;
     gap: 12px;
     padding: 14px 18px;
+  }
+
+  .explore-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 18px;
+  }
+
+  .explore-actions {
+    width: 100%;
+  }
+
+  .explore-button {
+    min-height: 44px;
+    flex: 1;
   }
 
   .candidate-actions {

@@ -27,10 +27,20 @@
   const confirmCityButton = document.querySelector("#confirm-city-button");
   const cancelCityButton = document.querySelector("#cancel-city-button");
   const closeCandidateButton = document.querySelector("#close-candidate-button");
+  const exploreToolbar = document.querySelector("#explore-toolbar");
+  const exploreStatus = document.querySelector("#explore-status");
+  const exploreMeta = document.querySelector("#explore-meta");
+  const exploreButton = document.querySelector("#explore-button");
+  const exploreRetryButton = document.querySelector("#explore-retry-button");
+  const exploreClearButton = document.querySelector("#explore-clear-button");
   const placeCount = document.querySelector("#place-count");
   const placeStatus = document.querySelector("#place-status");
   const placesList = document.querySelector("#places-list");
   const appVersion = document.querySelector("#app-version");
+  const EXPLORE_LIMIT = 40;
+  const EXPLORE_TIMEOUT_MS = 5000;
+  const EXPLORE_CACHE_TTL_MS = 30000;
+  const EXPLORE_CACHE_MAX_ENTRIES = 50;
 
   const state = {
     regions: [],
@@ -48,6 +58,26 @@
     tileUnavailable: false,
     tileErrors: 0,
     worldViewActive: false,
+    explore: {
+      status: "idle",
+      requestId: null,
+      bounds: null,
+      limit: EXPLORE_LIMIT,
+      source: null,
+      total: 0,
+      returned: 0,
+      truncated: false,
+      errorCode: null,
+      retryAfterSeconds: null,
+      cacheKey: null,
+      updatedAt: null,
+    },
+    exploreLayer: null,
+    exploreAbortController: null,
+    exploreRequestTimeout: null,
+    exploreCountdownTimer: null,
+    exploreCache: new Map(),
+    exploreSequence: 0,
   };
 
   function setStatus(element, message, tone = "") {
@@ -273,6 +303,9 @@
       const cityMarkerPane = state.map.createPane("cityMarkers");
       cityMarkerPane.style.zIndex = "650";
       cityMarkerPane.style.pointerEvents = "auto";
+      const exploreMarkerPane = state.map.createPane("exploreMarkers");
+      exploreMarkerPane.style.zIndex = "625";
+      exploreMarkerPane.style.pointerEvents = "auto";
 
       state.tileLayer = window.L.tileLayer(
         "https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}",
@@ -301,6 +334,25 @@
         mapElement.dataset.centerLng = center.lng.toFixed(5);
       };
       state.map.on("moveend zoomend", syncMapState);
+      state.map.on("dragstart", () => markExploreDirty());
+      mapElement.addEventListener("wheel", () => markExploreDirty(), {
+        passive: true,
+      });
+      mapElement.addEventListener(
+        "touchstart",
+        (event) => {
+          if (event.touches.length > 1) {
+            markExploreDirty();
+          }
+        },
+        { passive: true },
+      );
+      mapElement.addEventListener("dblclick", () => markExploreDirty());
+      mapElement.addEventListener("click", (event) => {
+        if (event.target.closest(".leaflet-control-zoom")) {
+          markExploreDirty();
+        }
+      });
       syncMapState();
       window.addEventListener("resize", () => {
         state.map.invalidateSize({ pan: false });
@@ -597,6 +649,7 @@
       return;
     }
 
+    clearExploreState();
     state.candidateRegion = region;
     state.worldViewActive = false;
     updateCandidatePreview();
@@ -667,6 +720,516 @@
     selectCity(candidate.id);
   }
 
+  function clearExploreLayer() {
+    if (state.exploreLayer && state.map) {
+      state.exploreLayer.remove();
+      state.map.closePopup();
+    }
+    state.exploreLayer = null;
+  }
+
+  function cancelExploreActivity() {
+    if (state.exploreAbortController) {
+      state.exploreAbortController.abort();
+      state.exploreAbortController = null;
+    }
+    if (state.exploreRequestTimeout) {
+      clearTimeout(state.exploreRequestTimeout);
+      state.exploreRequestTimeout = null;
+    }
+    if (state.exploreCountdownTimer) {
+      clearInterval(state.exploreCountdownTimer);
+      state.exploreCountdownTimer = null;
+    }
+  }
+
+  function setExploreState(status, overrides = {}) {
+    state.explore = {
+      status,
+      requestId: null,
+      bounds: null,
+      limit: EXPLORE_LIMIT,
+      source: null,
+      total: 0,
+      returned: 0,
+      truncated: false,
+      errorCode: null,
+      retryAfterSeconds: null,
+      cacheKey: null,
+      updatedAt: null,
+      ...overrides,
+    };
+    renderExploreState();
+  }
+
+  function clearExploreState() {
+    state.exploreSequence += 1;
+    cancelExploreActivity();
+    clearExploreLayer();
+    setExploreState("idle");
+  }
+
+  function markExploreDirty() {
+    if (!state.worldViewActive) {
+      return;
+    }
+
+    state.exploreSequence += 1;
+    cancelExploreActivity();
+    clearExploreLayer();
+    setExploreState("dirty");
+  }
+
+  function renderExploreState() {
+    const explore = state.explore;
+    exploreToolbar.hidden = !state.worldViewActive;
+    exploreToolbar.dataset.status = explore.status;
+    exploreToolbar.dataset.requestId =
+      explore.requestId === null ? "" : String(explore.requestId);
+    exploreToolbar.dataset.source = explore.source || "";
+    exploreToolbar.dataset.limit = String(explore.limit);
+    exploreToolbar.dataset.total = String(explore.total);
+    exploreToolbar.dataset.returned = String(explore.returned);
+    exploreToolbar.dataset.truncated = String(explore.truncated);
+    exploreToolbar.dataset.errorCode = explore.errorCode || "";
+    exploreToolbar.dataset.retryAfterSeconds =
+      explore.retryAfterSeconds === null
+        ? ""
+        : String(explore.retryAfterSeconds);
+    exploreToolbar.dataset.bounds = explore.bounds
+      ? JSON.stringify(explore.bounds)
+      : "";
+    exploreToolbar.dataset.cacheKey = explore.cacheKey || "";
+    exploreToolbar.dataset.updatedAt =
+      explore.updatedAt === null ? "" : String(explore.updatedAt);
+
+    let message = "拖动或缩放地图后，点击探索。";
+    let tone = "";
+    if (explore.status === "dirty") {
+      message = "区域已变化，请重新探索。";
+    } else if (explore.status === "loading") {
+      message = "正在探索当前区域…";
+    } else if (explore.status === "ready") {
+      message = `已发现 ${explore.returned} 个公开地点。`;
+    } else if (explore.status === "empty") {
+      message = "当前区域没有公开地点。";
+    } else if (explore.status === "truncated") {
+      message = `显示前 ${explore.returned} 个，共 ${explore.total} 个。`;
+    } else if (explore.status === "too_large") {
+      message = "区域过大，请放大地图后重试。";
+      tone = "error";
+    } else if (explore.status === "rate_limited") {
+      message =
+        explore.retryAfterSeconds > 0
+          ? `请求过于频繁，请在 ${explore.retryAfterSeconds} 秒后重试。`
+          : "请求过于频繁，可重新探索。";
+      tone = "error";
+    } else if (explore.status === "timeout") {
+      message = "探索超时，请重试。";
+      tone = "error";
+    } else if (explore.status === "error") {
+      message = "探索失败，请稍后重试。";
+      tone = "error";
+    }
+
+    setStatus(exploreStatus, message, tone);
+    const hasResult = ["ready", "empty", "truncated"].includes(explore.status);
+    exploreMeta.hidden = !hasResult;
+    if (hasResult) {
+      exploreMeta.textContent =
+        explore.source === "cache"
+          ? "来源：30 秒缓存"
+          : "来源：当前地图范围";
+    }
+
+    const rateLimited =
+      explore.status === "rate_limited" &&
+      Number(explore.retryAfterSeconds) > 0;
+    exploreButton.disabled = explore.status === "loading" || rateLimited;
+    exploreButton.textContent =
+      explore.status === "loading" ? "正在探索…" : "探索此区域";
+    exploreButton.setAttribute(
+      "aria-busy",
+      String(explore.status === "loading"),
+    );
+    exploreRetryButton.hidden = ![
+      "rate_limited",
+      "timeout",
+      "error",
+    ].includes(explore.status);
+    exploreRetryButton.disabled = rateLimited;
+    exploreClearButton.hidden = explore.status === "idle";
+  }
+
+  function quantizeExploreBounds() {
+    const raw = state.map.getBounds();
+    const toHundredth = (value) => Number(value.toFixed(2));
+    let west = Math.max(-180, Math.floor(raw.getWest() * 100) / 100);
+    let south = Math.max(-90, Math.floor(raw.getSouth() * 100) / 100);
+    let east = Math.min(180, Math.ceil(raw.getEast() * 100) / 100);
+    let north = Math.min(90, Math.ceil(raw.getNorth() * 100) / 100);
+
+    west = toHundredth(west);
+    south = toHundredth(south);
+    east = toHundredth(east);
+    north = toHundredth(north);
+
+    if (east - west < 0.01) {
+      if (east < 180) {
+        east = toHundredth(west + 0.01);
+      } else {
+        west = toHundredth(east - 0.01);
+      }
+    }
+    if (north - south < 0.01) {
+      if (north < 90) {
+        north = toHundredth(south + 0.01);
+      } else {
+        south = toHundredth(north - 0.01);
+      }
+    }
+
+    const bounds = { west, south, east, north };
+    const cacheKey = [
+      "explore:v1",
+      west.toFixed(2),
+      south.toFixed(2),
+      east.toFixed(2),
+      north.toFixed(2),
+      String(EXPLORE_LIMIT),
+    ].join(":");
+    return {
+      bounds,
+      cacheKey,
+      tooLarge: east - west > 60 || north - south > 30,
+    };
+  }
+
+  function readExploreCache(cacheKey) {
+    const entry = state.exploreCache.get(cacheKey);
+    if (!entry) {
+      return null;
+    }
+    if (entry.expiresAt <= Date.now()) {
+      state.exploreCache.delete(cacheKey);
+      return null;
+    }
+    return entry;
+  }
+
+  function writeExploreCache(cacheKey, payload) {
+    if (state.exploreCache.size >= EXPLORE_CACHE_MAX_ENTRIES) {
+      const oldestKey = state.exploreCache.keys().next().value;
+      if (oldestKey) {
+        state.exploreCache.delete(oldestKey);
+      }
+    }
+    state.exploreCache.set(cacheKey, {
+      payload,
+      expiresAt: Date.now() + EXPLORE_CACHE_TTL_MS,
+    });
+  }
+
+  function normalizeExplorePlace(place, index) {
+    return {
+      ...normalizePlace(place, index),
+      cityId: String(place.cityId ?? ""),
+      cityName: String(place.cityName ?? ""),
+      source: place.source || null,
+    };
+  }
+
+  function createExplorePopupContent(place) {
+    const wrapper = document.createElement("div");
+    const name = document.createElement("strong");
+    const detail = document.createElement("span");
+    const source = document.createElement("span");
+    const provider =
+      place.source && typeof place.source === "object"
+        ? place.source.provider
+        : null;
+
+    name.className = "popup-name explore-popup-name";
+    name.textContent = place.name;
+    detail.className = "popup-detail";
+    detail.textContent = [place.cityName, place.detail]
+      .filter(Boolean)
+      .join(" · ");
+    source.className = "popup-detail explore-popup-source";
+    source.textContent = `探索地点 · ${provider || "公开地图数据"}`;
+    wrapper.append(name, detail, source);
+    return wrapper;
+  }
+
+  function renderExploreLayer(places) {
+    clearExploreLayer();
+    if (!state.map || !Array.isArray(places) || !places.length) {
+      return;
+    }
+
+    state.exploreLayer = window.L.layerGroup().addTo(state.map);
+    places.forEach((rawPlace, index) => {
+      const place = normalizeExplorePlace(rawPlace, index);
+      const position = markerPosition(place, state.currentRegion);
+      if (!position) {
+        return;
+      }
+
+      const marker = window.L.circleMarker(position, {
+        pane: "exploreMarkers",
+        radius: 7,
+        color: "#f8fbfd",
+        weight: 2,
+        fillColor: "#356881",
+        fillOpacity: 1,
+        className: "explore-marker",
+      });
+      marker.bindTooltip(place.name, {
+        direction: "top",
+        offset: [0, -5],
+      });
+      marker.bindPopup(createExplorePopupContent(place));
+      marker.addTo(state.exploreLayer);
+      const markerElement = marker.getElement();
+      if (markerElement) {
+        markerElement.dataset.exploreId = place.id;
+      }
+    });
+  }
+
+  function applyExplorePayload(payload, source, bounds, cacheKey, requestId) {
+    const rawPlaces = Array.isArray(payload.places) ? payload.places : [];
+    const places = rawPlaces.map(normalizeExplorePlace);
+    const total = Number.isFinite(Number(payload.total))
+      ? Number(payload.total)
+      : places.length;
+    const returned = Number.isFinite(Number(payload.returned))
+      ? Number(payload.returned)
+      : places.length;
+    const truncated = Boolean(payload.truncated);
+    const status = total === 0 ? "empty" : truncated ? "truncated" : "ready";
+
+    renderExploreLayer(rawPlaces);
+    setExploreState(status, {
+      requestId,
+      bounds,
+      source,
+      total,
+      returned,
+      truncated,
+      cacheKey,
+      updatedAt: Date.now(),
+    });
+  }
+
+  function setExploreFailure(
+    status,
+    errorCode,
+    bounds,
+    cacheKey,
+    requestId,
+    retryAfterSeconds = null,
+  ) {
+    clearExploreLayer();
+    setExploreState(status, {
+      requestId,
+      bounds,
+      cacheKey,
+      errorCode,
+      retryAfterSeconds,
+      updatedAt: Date.now(),
+    });
+
+    if (status === "rate_limited") {
+      state.exploreCountdownTimer = setInterval(() => {
+        if (
+          state.explore.status !== "rate_limited" ||
+          state.explore.retryAfterSeconds === null
+        ) {
+          return;
+        }
+        state.explore.retryAfterSeconds = Math.max(
+          0,
+          state.explore.retryAfterSeconds - 1,
+        );
+        renderExploreState();
+        if (state.explore.retryAfterSeconds === 0) {
+          clearInterval(state.exploreCountdownTimer);
+          state.exploreCountdownTimer = null;
+        }
+      }, 1000);
+    }
+  }
+
+  async function exploreCurrentBounds() {
+    if (!state.worldViewActive || !state.map) {
+      return;
+    }
+
+    const quantized = quantizeExploreBounds();
+    state.exploreSequence += 1;
+    const requestId = state.exploreSequence;
+    cancelExploreActivity();
+    clearExploreLayer();
+    state.explore.requestId = requestId;
+    state.explore.bounds = quantized.bounds;
+    state.explore.cacheKey = quantized.cacheKey;
+
+    if (quantized.tooLarge) {
+      setExploreFailure(
+        "too_large",
+        "REGION_TOO_LARGE",
+        quantized.bounds,
+        quantized.cacheKey,
+        requestId,
+      );
+      return;
+    }
+
+    const cached = readExploreCache(quantized.cacheKey);
+    if (cached) {
+      applyExplorePayload(
+        cached.payload,
+        "cache",
+        quantized.bounds,
+        quantized.cacheKey,
+        requestId,
+      );
+      return;
+    }
+
+    const controller = new AbortController();
+    state.exploreAbortController = controller;
+    let clientTimedOut = false;
+    setExploreState("loading", {
+      requestId,
+      bounds: quantized.bounds,
+      cacheKey: quantized.cacheKey,
+    });
+    state.exploreRequestTimeout = setTimeout(() => {
+      clientTimedOut = true;
+      controller.abort();
+    }, EXPLORE_TIMEOUT_MS);
+
+    const query = new URLSearchParams({
+      west: quantized.bounds.west.toFixed(2),
+      south: quantized.bounds.south.toFixed(2),
+      east: quantized.bounds.east.toFixed(2),
+      north: quantized.bounds.north.toFixed(2),
+      limit: String(EXPLORE_LIMIT),
+    });
+
+    try {
+      const response = await fetch(`/api/explore?${query}`, {
+        headers: { Accept: "application/json" },
+        signal: controller.signal,
+      });
+      let payload = null;
+      try {
+        payload = await response.json();
+      } catch {
+        payload = null;
+      }
+
+      if (requestId !== state.exploreSequence || !state.worldViewActive) {
+        return;
+      }
+
+      if (!response.ok) {
+        const code =
+          payload && payload.error && payload.error.code
+            ? payload.error.code
+            : "EXPLORE_ERROR";
+        if (response.status === 429 || code === "RATE_LIMITED") {
+          const retryHeader = Number(response.headers.get("Retry-After"));
+          const retryPayload = Number(
+            payload && payload.retryAfterSeconds,
+          );
+          const retrySeconds =
+            Number.isFinite(retryHeader) && retryHeader > 0
+              ? Math.min(60, Math.ceil(retryHeader))
+              : Number.isFinite(retryPayload) && retryPayload > 0
+                ? Math.min(60, Math.ceil(retryPayload))
+                : 1;
+          setExploreFailure(
+            "rate_limited",
+            code,
+            quantized.bounds,
+            quantized.cacheKey,
+            requestId,
+            retrySeconds,
+          );
+        } else if (
+          response.status === 504 ||
+          code === "EXPLORE_TIMEOUT"
+        ) {
+          setExploreFailure(
+            "timeout",
+            code,
+            quantized.bounds,
+            quantized.cacheKey,
+            requestId,
+          );
+        } else if (code === "REGION_TOO_LARGE") {
+          setExploreFailure(
+            "too_large",
+            code,
+            quantized.bounds,
+            quantized.cacheKey,
+            requestId,
+          );
+        } else {
+          setExploreFailure(
+            "error",
+            code,
+            quantized.bounds,
+            quantized.cacheKey,
+            requestId,
+          );
+        }
+        return;
+      }
+
+      applyExplorePayload(
+        payload,
+        "network",
+        quantized.bounds,
+        quantized.cacheKey,
+        requestId,
+      );
+      writeExploreCache(quantized.cacheKey, payload);
+    } catch (error) {
+      if (requestId !== state.exploreSequence || !state.worldViewActive) {
+        return;
+      }
+      if (clientTimedOut) {
+        setExploreFailure(
+          "timeout",
+          "CLIENT_TIMEOUT",
+          quantized.bounds,
+          quantized.cacheKey,
+          requestId,
+        );
+      } else {
+        setExploreFailure(
+          "error",
+          "NETWORK_ERROR",
+          quantized.bounds,
+          quantized.cacheKey,
+          requestId,
+        );
+      }
+    } finally {
+      if (requestId === state.exploreSequence) {
+        if (state.exploreRequestTimeout) {
+          clearTimeout(state.exploreRequestTimeout);
+          state.exploreRequestTimeout = null;
+        }
+        state.exploreAbortController = null;
+      }
+    }
+  }
+
   function updateMapModeControls() {
     worldViewButton.setAttribute(
       "aria-pressed",
@@ -678,6 +1241,7 @@
       "map-view-button-active",
       !state.worldViewActive,
     );
+    renderExploreState();
   }
 
   function setMapCaptionForCurrentCity() {
@@ -703,6 +1267,7 @@
     if (state.candidateRegion) {
       closeCandidate(false);
     }
+    clearExploreState();
 
     const points = state.regions
       .filter(
@@ -727,6 +1292,7 @@
     mapCaption.textContent = `世界视图 · 抽签城市：${
       state.currentRegion?.name || "未选择"
     }`;
+    renderExploreState();
   }
 
   function returnToCurrentCity() {
@@ -739,6 +1305,7 @@
       return;
     }
 
+    clearExploreState();
     state.worldViewActive = false;
     focusMap(state.currentRegion, state.places);
     updateMapModeControls();
@@ -841,6 +1408,7 @@
     spinButton.disabled = false;
     spinButton.removeAttribute("aria-busy");
     state.currentRegion = region;
+    clearExploreState();
     if (state.candidateRegion) {
       state.candidateRegion = null;
       updateCandidatePreview();
@@ -1012,6 +1580,9 @@
     confirmCityButton.addEventListener("click", confirmCandidate);
     cancelCityButton.addEventListener("click", () => closeCandidate());
     closeCandidateButton.addEventListener("click", () => closeCandidate());
+    exploreButton.addEventListener("click", exploreCurrentBounds);
+    exploreRetryButton.addEventListener("click", exploreCurrentBounds);
+    exploreClearButton.addEventListener("click", () => clearExploreState());
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && state.candidateRegion) {
         event.preventDefault();
