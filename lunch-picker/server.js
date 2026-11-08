@@ -9,11 +9,22 @@ const {
   getRegionById,
   getPlacesByRegionId,
   spinRegion,
+  getExplorePlaces,
 } = require("./data");
 
 const PUBLIC_DIR = path.join(__dirname, "public");
 const LEAFLET_DIR = path.join(__dirname, "node_modules", "leaflet", "dist");
 const MAX_JSON_BYTES = 16 * 1024;
+const EXPLORE_VERSION = "0.5.0";
+const EXPLORE_DEFAULT_LIMIT = 40;
+const EXPLORE_MAX_LIMIT = 100;
+const EXPLORE_MAX_LNG_SPAN = 60;
+const EXPLORE_MAX_LAT_SPAN = 30;
+const EXPLORE_DEFAULT_TIMEOUT_MS = 4000;
+const EXPLORE_RATE_LIMIT = 30;
+const EXPLORE_RATE_WINDOW_MS = 60 * 1000;
+const DECIMAL_NUMBER_PATTERN = /^-?(?:\d+(?:\.\d*)?|\.\d+)$/;
+const POSITIVE_INTEGER_PATTERN = /^\d+$/;
 const CONTENT_TYPES = new Map([
   [".css", "text/css; charset=utf-8"],
   [".html", "text/html; charset=utf-8"],
@@ -105,7 +116,160 @@ function getRegionId(pathname) {
   }
 }
 
-async function handleApi(req, res, url) {
+function parseDecimalParameter(searchParams, name, errorCode) {
+  const values = searchParams.getAll(name);
+  if (values.length !== 1) {
+    throw new RequestError(400, errorCode, `${name} must appear exactly once`);
+  }
+
+  const raw = values[0].trim();
+  if (!DECIMAL_NUMBER_PATTERN.test(raw)) {
+    throw new RequestError(400, errorCode, `${name} must be a finite decimal number`);
+  }
+
+  const value = Number(raw);
+  if (!Number.isFinite(value)) {
+    throw new RequestError(400, errorCode, `${name} must be a finite decimal number`);
+  }
+
+  return value;
+}
+
+function parseExploreLimit(searchParams) {
+  const values = searchParams.getAll("limit");
+  if (values.length === 0) {
+    return EXPLORE_DEFAULT_LIMIT;
+  }
+
+  if (values.length !== 1) {
+    throw new RequestError(400, "INVALID_LIMIT", "limit must appear at most once");
+  }
+
+  const raw = values[0].trim();
+  if (!POSITIVE_INTEGER_PATTERN.test(raw)) {
+    throw new RequestError(400, "INVALID_LIMIT", "limit must be a positive integer");
+  }
+
+  const limit = Number(raw);
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > EXPLORE_MAX_LIMIT) {
+    throw new RequestError(
+      400,
+      "INVALID_LIMIT",
+      `limit must be between 1 and ${EXPLORE_MAX_LIMIT}`,
+    );
+  }
+
+  return limit;
+}
+
+function parseExploreQuery(searchParams) {
+  const bounds = {
+    west: parseDecimalParameter(searchParams, "west", "INVALID_BOUNDS"),
+    south: parseDecimalParameter(searchParams, "south", "INVALID_BOUNDS"),
+    east: parseDecimalParameter(searchParams, "east", "INVALID_BOUNDS"),
+    north: parseDecimalParameter(searchParams, "north", "INVALID_BOUNDS"),
+  };
+
+  const validBounds =
+    bounds.west >= -180 &&
+    bounds.east <= 180 &&
+    bounds.south >= -90 &&
+    bounds.north <= 90 &&
+    bounds.west < bounds.east &&
+    bounds.south < bounds.north;
+
+  if (!validBounds) {
+    throw new RequestError(
+      400,
+      "INVALID_BOUNDS",
+      "bounds must satisfy -180 <= west < east <= 180 and -90 <= south < north <= 90",
+    );
+  }
+
+  if (
+    bounds.east - bounds.west > EXPLORE_MAX_LNG_SPAN ||
+    bounds.north - bounds.south > EXPLORE_MAX_LAT_SPAN
+  ) {
+    throw new RequestError(
+      400,
+      "REGION_TOO_LARGE",
+      `region span must not exceed ${EXPLORE_MAX_LNG_SPAN} by ${EXPLORE_MAX_LAT_SPAN} degrees`,
+    );
+  }
+
+  return {
+    bounds,
+    limit: parseExploreLimit(searchParams),
+  };
+}
+
+function createExploreRateLimiter({
+  max = EXPLORE_RATE_LIMIT,
+  windowMs = EXPLORE_RATE_WINDOW_MS,
+  now = Date.now,
+} = {}) {
+  const buckets = new Map();
+
+  return {
+    consume(key) {
+      const currentTime = now();
+      let bucket = buckets.get(key);
+
+      if (!bucket || currentTime >= bucket.resetAt) {
+        bucket = {
+          count: 0,
+          resetAt: currentTime + windowMs,
+        };
+        buckets.set(key, bucket);
+      }
+
+      bucket.count += 1;
+      const allowed = bucket.count <= max;
+      const remaining = Math.max(0, max - bucket.count);
+      const retryAfterSeconds = Math.max(
+        1,
+        Math.ceil((bucket.resetAt - currentTime) / 1000),
+      );
+
+      return {
+        allowed,
+        limit: max,
+        remaining,
+        resetAt: bucket.resetAt,
+        retryAfterSeconds,
+      };
+    },
+  };
+}
+
+function rateLimitHeaders(rate) {
+  return {
+    "RateLimit-Limit": String(rate.limit),
+    "RateLimit-Remaining": String(rate.remaining),
+    "RateLimit-Reset": String(Math.ceil(rate.resetAt / 1000)),
+  };
+}
+
+function wait(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+async function withTimeout(task, timeoutMs) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      reject(new RequestError(504, "EXPLORE_TIMEOUT", "Region exploration timed out"));
+    }, timeoutMs);
+  });
+
+  try {
+    return await Promise.race([task(), timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function handleApi(req, res, url, options) {
   const { pathname } = url;
 
   if (pathname === "/api/regions") {
@@ -132,6 +296,62 @@ async function handleApi(req, res, url) {
     }
 
     sendJson(res, 200, result);
+    return true;
+  }
+
+  if (pathname === "/api/explore") {
+    if (req.method !== "GET") {
+      sendError(res, 405, "METHOD_NOT_ALLOWED", "Use GET for this endpoint", { Allow: "GET" });
+      return true;
+    }
+
+    const rate = options.exploreRateLimiter.consume(req.socket.remoteAddress || "unknown");
+    const headers = rateLimitHeaders(rate);
+
+    if (!rate.allowed) {
+      sendJson(
+        res,
+        429,
+        {
+          error: {
+            code: "RATE_LIMITED",
+            message: "Too many region exploration requests",
+          },
+          retryAfterSeconds: rate.retryAfterSeconds,
+        },
+        {
+          ...headers,
+          "Retry-After": String(rate.retryAfterSeconds),
+        },
+      );
+      return true;
+    }
+
+    const query = parseExploreQuery(url.searchParams);
+    const result = await withTimeout(
+      async () => {
+        if (options.exploreProcessingDelayMs > 0) {
+          await wait(options.exploreProcessingDelayMs);
+        }
+        return getExplorePlaces(query.bounds, query.limit);
+      },
+      options.exploreTimeoutMs,
+    );
+
+    sendJson(
+      res,
+      200,
+      {
+        version: EXPLORE_VERSION,
+        bounds: query.bounds,
+        limit: query.limit,
+        total: result.total,
+        returned: result.returned,
+        truncated: result.truncated,
+        places: result.places,
+      },
+      headers,
+    );
     return true;
   }
 
@@ -237,11 +457,17 @@ async function serveStatic(req, res, url) {
   });
 }
 
-function createServer() {
+function createServer(options = {}) {
+  const serverOptions = {
+    exploreRateLimiter: createExploreRateLimiter(options.exploreRateLimit),
+    exploreProcessingDelayMs: options.exploreProcessingDelayMs || 0,
+    exploreTimeoutMs: options.exploreTimeoutMs || EXPLORE_DEFAULT_TIMEOUT_MS,
+  };
+
   return http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url, "http://localhost");
-      if (await handleApi(req, res, url)) {
+      if (await handleApi(req, res, url, serverOptions)) {
         return;
       }
       await serveStatic(req, res, url);
@@ -273,4 +499,6 @@ if (require.main === module) {
 
 module.exports = {
   createServer,
+  createExploreRateLimiter,
+  parseExploreQuery,
 };

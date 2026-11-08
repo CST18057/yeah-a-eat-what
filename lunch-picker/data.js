@@ -60,9 +60,57 @@ function spinRegion(regionId, random = Math.random) {
   };
 }
 
+function getExplorePlaces(bounds, limit) {
+  const matches = [];
+
+  for (const region of regions) {
+    for (const place of region.places) {
+      if (
+        place.lng >= bounds.west &&
+        place.lng <= bounds.east &&
+        place.lat >= bounds.south &&
+        place.lat <= bounds.north
+      ) {
+        matches.push({
+          id: place.id,
+          name: place.name,
+          cityId: region.id,
+          cityName: region.name,
+          lat: place.lat,
+          lng: place.lng,
+          cuisine: place.cuisine,
+          address: place.address,
+          source: clone(place.source),
+        });
+      }
+    }
+  }
+
+  matches.sort((left, right) => {
+    if (left.id < right.id) {
+      return -1;
+    }
+    if (left.id > right.id) {
+      return 1;
+    }
+    return 0;
+  });
+
+  const total = matches.length;
+  const places = matches.slice(0, limit);
+
+  return {
+    total,
+    returned: places.length,
+    truncated: total > places.length,
+    places,
+  };
+}
+
 module.exports = {
   getRegions,
   getRegionById,
   getPlacesByRegionId,
   spinRegion,
+  getExplorePlaces,
 };

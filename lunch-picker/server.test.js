@@ -10,23 +10,34 @@ const { createServer } = require("./server");
 let server;
 let baseUrl;
 
-before(async () => {
-  server = createServer();
+async function startServer(options) {
+  const instance = createServer(options);
   await new Promise((resolve, reject) => {
-    server.once("error", reject);
-    server.listen(0, "127.0.0.1", resolve);
+    instance.once("error", reject);
+    instance.listen(0, "127.0.0.1", resolve);
   });
-  baseUrl = `http://127.0.0.1:${server.address().port}`;
+  return {
+    server: instance,
+    baseUrl: `http://127.0.0.1:${instance.address().port}`,
+  };
+}
+
+async function stopServer(instance) {
+  await new Promise((resolve, reject) => {
+    instance.close((error) => (error ? reject(error) : resolve()));
+  });
+}
+
+before(async () => {
+  ({ server, baseUrl } = await startServer());
 });
 
 after(async () => {
-  await new Promise((resolve, reject) => {
-    server.close((error) => (error ? reject(error) : resolve()));
-  });
+  await stopServer(server);
 });
 
-async function jsonRequest(pathname, options) {
-  const response = await fetch(`${baseUrl}${pathname}`, options);
+async function jsonRequest(pathname, options, requestBaseUrl = baseUrl) {
+  const response = await fetch(`${requestBaseUrl}${pathname}`, options);
   const body = await response.json();
   return { response, body };
 }
@@ -220,4 +231,199 @@ test("API methods and routes fail predictably", async () => {
   const unknownApi = await jsonRequest("/api/missing");
   assert.equal(unknownApi.response.status, 404);
   assert.equal(unknownApi.body.error.code, "API_NOT_FOUND");
+});
+
+function explorePath(bounds, limit) {
+  const search = new URLSearchParams({
+    west: String(bounds.west),
+    south: String(bounds.south),
+    east: String(bounds.east),
+    north: String(bounds.north),
+  });
+  if (limit !== undefined) {
+    search.set("limit", String(limit));
+  }
+  return `/api/explore?${search}`;
+}
+
+test("GET /api/explore returns stable city-attributed places", async () => {
+  const bounds = { west: 139.6, south: 35.6, east: 139.85, north: 35.8 };
+  const { response, body } = await jsonRequest(explorePath(bounds));
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("content-type"), "application/json; charset=utf-8");
+  assert.equal(body.version, "0.5.0");
+  assert.deepEqual(body.bounds, bounds);
+  assert.equal(body.limit, 40);
+  assert.equal(body.total, 5);
+  assert.equal(body.returned, 5);
+  assert.equal(body.truncated, false);
+  assert.deepEqual(
+    body.places.map((place) => place.id),
+    [
+      "tokyo-ameyoko",
+      "tokyo-golden-gai",
+      "tokyo-omoide-yokocho",
+      "tokyo-shibuya",
+      "tokyo-tsukiji-outer-market",
+    ],
+  );
+  assert.deepEqual(body.places[4], {
+    id: "tokyo-tsukiji-outer-market",
+    name: "築地場外市場",
+    cityId: "tokyo",
+    cityName: "东京",
+    lat: 35.6653884,
+    lng: 139.7704732,
+    cuisine: "海鲜小吃",
+    address: "中央区築地",
+    source: {
+      provider: "OpenStreetMap",
+      type: "way",
+      id: 606978548,
+      url: "https://www.openstreetmap.org/way/606978548",
+    },
+  });
+});
+
+test("GET /api/explore handles empty regions and truncation", async () => {
+  const empty = await jsonRequest(
+    explorePath({ west: 0, south: 0, east: 1, north: 1 }),
+  );
+  assert.equal(empty.response.status, 200);
+  assert.equal(empty.body.total, 0);
+  assert.equal(empty.body.returned, 0);
+  assert.equal(empty.body.truncated, false);
+  assert.deepEqual(empty.body.places, []);
+
+  const truncated = await jsonRequest(
+    explorePath({ west: 139.6, south: 35.6, east: 139.85, north: 35.8 }, 1),
+  );
+  assert.equal(truncated.response.status, 200);
+  assert.equal(truncated.body.total, 5);
+  assert.equal(truncated.body.returned, 1);
+  assert.equal(truncated.body.truncated, true);
+  assert.equal(truncated.body.places[0].id, "tokyo-ameyoko");
+});
+
+test("GET /api/explore includes places on the bounds", async () => {
+  const { response, body } = await jsonRequest(
+    explorePath({
+      west: 139.7704732,
+      south: 35.6653884,
+      east: 139.7804732,
+      north: 35.6753884,
+    }),
+  );
+  assert.equal(response.status, 200);
+  assert.equal(body.total, 1);
+  assert.equal(body.places[0].id, "tokyo-tsukiji-outer-market");
+});
+
+test("GET /api/explore enforces default and maximum limits", async () => {
+  const tokyo = { west: 139.6, south: 35.6, east: 139.85, north: 35.8 };
+  const defaultLimit = await jsonRequest(explorePath(tokyo));
+  assert.equal(defaultLimit.response.status, 200);
+  assert.equal(defaultLimit.body.limit, 40);
+  assert.equal(defaultLimit.body.total, 5);
+  assert.equal(defaultLimit.body.returned, 5);
+  assert.equal(defaultLimit.body.truncated, false);
+
+  const maxLimit = await jsonRequest(explorePath(tokyo, 100));
+  assert.equal(maxLimit.response.status, 200);
+  assert.equal(maxLimit.body.limit, 100);
+  assert.equal(maxLimit.body.total, 5);
+  assert.equal(maxLimit.body.returned, 5);
+  assert.equal(maxLimit.body.truncated, false);
+});
+
+test("GET /api/explore rejects invalid bounds and limits", async () => {
+  const cases = [
+    ["/api/explore?south=0&east=1&north=1", "INVALID_BOUNDS"],
+    ["/api/explore?west=0&west=1&south=0&east=1&north=1", "INVALID_BOUNDS"],
+    ["/api/explore?west=Infinity&south=0&east=1&north=1", "INVALID_BOUNDS"],
+    ["/api/explore?west=1&south=0&east=1&north=1", "INVALID_BOUNDS"],
+    ["/api/explore?west=1&south=0&east=0&north=1", "INVALID_BOUNDS"],
+    ["/api/explore?west=-181&south=0&east=1&north=1", "INVALID_BOUNDS"],
+    ["/api/explore?west=-30&south=0&east=31&north=1", "REGION_TOO_LARGE"],
+    ["/api/explore?west=0&south=0&east=1&north=31", "REGION_TOO_LARGE"],
+    [explorePath({ west: 0, south: 0, east: 1, north: 1 }, 0), "INVALID_LIMIT"],
+    [explorePath({ west: 0, south: 0, east: 1, north: 1 }, 101), "INVALID_LIMIT"],
+    [explorePath({ west: 0, south: 0, east: 1, north: 1 }, 1.5), "INVALID_LIMIT"],
+    [
+      "/api/explore?west=0&south=0&east=1&north=1&limit=1&limit=2",
+      "INVALID_LIMIT",
+    ],
+  ];
+
+  for (const [pathname, expectedCode] of cases) {
+    const { response, body } = await jsonRequest(pathname);
+    assert.equal(response.status, 400, pathname);
+    assert.equal(body.error.code, expectedCode, pathname);
+  }
+});
+
+test("GET /api/explore is stable and returns isolated data", async () => {
+  const pathname = explorePath({ west: 139.6, south: 35.6, east: 139.85, north: 35.8 });
+  const firstResponse = await fetch(`${baseUrl}${pathname}`);
+  const firstText = await firstResponse.text();
+  const secondResponse = await fetch(`${baseUrl}${pathname}`);
+  const secondText = await secondResponse.text();
+  assert.equal(firstText, secondText);
+
+  const first = { response: firstResponse, body: JSON.parse(firstText) };
+
+  first.body.places[0].name = "mutated";
+  const third = await jsonRequest(pathname);
+  assert.equal(third.body.places[0].name, "アメ横");
+});
+
+test("GET /api/explore rate limits the 31st request in a fixed window", async () => {
+  let currentTime = 0;
+  const limited = await startServer({
+    exploreRateLimit: {
+      max: 30,
+      windowMs: 60000,
+      now: () => currentTime,
+    },
+  });
+
+  try {
+    const pathname = explorePath({ west: 0, south: 0, east: 1, north: 1 });
+    for (let index = 0; index < 30; index += 1) {
+      const allowed = await jsonRequest(pathname, undefined, limited.baseUrl);
+      assert.equal(allowed.response.status, 200);
+    }
+
+    const blocked = await jsonRequest(pathname, undefined, limited.baseUrl);
+    assert.equal(blocked.response.status, 429);
+    assert.equal(blocked.body.error.code, "RATE_LIMITED");
+    assert.equal(blocked.body.retryAfterSeconds, 60);
+    assert.equal(blocked.response.headers.get("retry-after"), "60");
+
+    currentTime = 60000;
+    const reset = await jsonRequest(pathname, undefined, limited.baseUrl);
+    assert.equal(reset.response.status, 200);
+  } finally {
+    await stopServer(limited.server);
+  }
+});
+
+test("GET /api/explore returns 504 after the internal deadline", async () => {
+  const timed = await startServer({
+    exploreProcessingDelayMs: 25,
+    exploreTimeoutMs: 5,
+  });
+
+  try {
+    const { response, body } = await jsonRequest(
+      explorePath({ west: 0, south: 0, east: 1, north: 1 }),
+      undefined,
+      timed.baseUrl,
+    );
+    assert.equal(response.status, 504);
+    assert.equal(body.error.code, "EXPLORE_TIMEOUT");
+  } finally {
+    await stopServer(timed.server);
+  }
 });
