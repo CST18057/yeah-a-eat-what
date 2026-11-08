@@ -699,6 +699,9 @@ const tests = [
           popup &&
           getComputedStyle(popup).opacity === "1" &&
           image &&
+          !image.hidden &&
+          getComputedStyle(image).display !== "none" &&
+          getComputedStyle(image).visibility !== "hidden" &&
           image.complete &&
           image.naturalWidth > 0
         );
