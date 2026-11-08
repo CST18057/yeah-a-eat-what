@@ -950,6 +950,150 @@ const tests = [
     },
   },
   {
+    name: "real spin keeps result card and map popup food binding aligned",
+    async run(browser) {
+      const viewports = [
+        { width: 1280, height: 900, suffix: "desktop" },
+        { width: 390, height: 844, suffix: "mobile" },
+      ];
+
+      for (const viewport of viewports) {
+        const context = await browser.newContext({
+          viewport,
+          reducedMotion: "reduce",
+          deviceScaleFactor: 1,
+          hasTouch: viewport.width <= 520,
+          isMobile: viewport.width <= 520,
+        });
+        const page = await context.newPage();
+        const pageErrors = [];
+        page.on("pageerror", (error) => pageErrors.push(error.message));
+        await page.route(/appmaptile/, (route) =>
+          route.fulfill({
+            status: 200,
+            contentType: "image/svg+xml",
+            body: mapTileFixture,
+          }),
+        );
+
+        await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+        await waitForCityReady(page);
+        await waitForMarkers(page);
+
+        const placesPayload = await fetch(
+          `${baseUrl}/api/regions/beijing/places`,
+        ).then((response) => response.json());
+        const defaultFoodId = placesPayload.places[0].food.foodId;
+        let sawDifferentFood = false;
+
+        for (let spinIndex = 0; spinIndex < 6; spinIndex += 1) {
+          const spinResponsePromise = page.waitForResponse(
+            (response) =>
+              new URL(response.url()).pathname === "/api/spin" &&
+              response.request().method() === "POST",
+          );
+          await page.locator("#spin-button").click();
+          const spinResponse = await spinResponsePromise;
+          assert.equal(spinResponse.status(), 200);
+          const spinPayload = await spinResponse.json();
+          const expected = spinPayload.place;
+          sawDifferentFood ||= expected.food.foodId !== defaultFoodId;
+
+          await page.waitForFunction(
+            (placeId) =>
+              document.querySelector("#result-card")?.dataset.placeId ===
+              placeId,
+            expected.id,
+          );
+          await page.waitForFunction(
+            (foodId) =>
+              document.querySelector(".popup-food")?.closest("[data-place-id]")
+                ?.dataset.foodId === foodId,
+            expected.food.foodId,
+          );
+
+          const resultBinding = await page
+            .locator("#result-card")
+            .evaluate((card) => ({
+              placeId: card.dataset.placeId,
+              foodId: card.dataset.foodId,
+              dish: card.dataset.foodDish,
+              image: card.dataset.foodImage,
+            }));
+          const popupBinding = await page
+            .locator(".popup-food")
+            .evaluate((media) => {
+              const wrapper = media.closest("[data-place-id]");
+              return {
+                placeId: wrapper?.dataset.placeId,
+                foodId: wrapper?.dataset.foodId,
+                dish: wrapper?.dataset.foodDish,
+                image: wrapper?.dataset.foodImage,
+                imageSrc: media
+                  .querySelector(".popup-food-image")
+                  ?.getAttribute("src"),
+                caption:
+                  media.querySelector(".popup-food-caption")?.textContent || "",
+              };
+            });
+          const expectedBinding = {
+            placeId: expected.id,
+            foodId: expected.food.foodId,
+            dish: expected.food.dish,
+            image: expected.food.image,
+          };
+
+          assert.deepEqual(resultBinding, expectedBinding);
+          assert.deepEqual(
+            {
+              placeId: popupBinding.placeId,
+              foodId: popupBinding.foodId,
+              dish: popupBinding.dish,
+              image: popupBinding.image,
+            },
+            expectedBinding,
+          );
+          assert.equal(popupBinding.imageSrc, expected.food.image);
+          assert.ok(popupBinding.caption.includes(expected.food.dish));
+          await page.waitForFunction(() => {
+            const popup = document.querySelector(".leaflet-popup");
+            const image = document.querySelector(".popup-food-image");
+            return (
+              popup &&
+              getComputedStyle(popup).opacity === "1" &&
+              image &&
+              !image.hidden &&
+              getComputedStyle(image).display !== "none" &&
+              getComputedStyle(image).visibility !== "hidden" &&
+              image.complete &&
+              image.naturalWidth > 0
+            );
+          });
+
+          if (sawDifferentFood) {
+            break;
+          }
+        }
+
+        assert.equal(
+          sawDifferentFood,
+          true,
+          "real spin must exercise a food different from the default place food",
+        );
+        assert.deepEqual(pageErrors, []);
+
+        await page.screenshot({
+          path: path.join(
+            outputDir,
+            `real-spin-food-binding-${viewport.suffix}.png`,
+          ),
+          fullPage: true,
+        });
+        await context.close();
+      }
+    },
+  },
+  {
     name: "desktop world browsing does not change lunch state",
     async run(browser) {
       const { context, page, pageErrors, apiRequests } = await openPage(

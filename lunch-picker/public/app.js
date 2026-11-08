@@ -558,6 +558,9 @@
       const fallback = document.createElement("span");
       const caption = document.createElement("figcaption");
 
+      wrapper.dataset.foodId = place.food.foodId;
+      wrapper.dataset.foodDish = place.food.dish;
+      wrapper.dataset.foodImage = place.food.image;
       media.className = "popup-food";
       frame.className = "popup-food-frame";
       image.className = "popup-food-image";
@@ -1409,10 +1412,14 @@
       resultImage.removeAttribute("src");
       resultImage.alt = "";
       resultImageCredit.textContent = "";
+      delete resultCard.dataset.foodId;
+      delete resultCard.dataset.foodDish;
       delete resultCard.dataset.foodImage;
       return;
     }
 
+    resultCard.dataset.foodId = place.food.foodId;
+    resultCard.dataset.foodDish = place.food.dish;
     resultCard.dataset.foodImage = place.food.image;
     resultMedia.hidden = false;
     resultImage.hidden = false;
@@ -1472,6 +1479,7 @@
   function openPlace(place) {
     const marker = state.markers.get(place.id);
     if (marker && state.map) {
+      marker.setPopupContent(createPopupContent(place));
       state.map.setView(marker.getLatLng(), Math.max(state.map.getZoom(), 13), {
         animate: false,
       });
