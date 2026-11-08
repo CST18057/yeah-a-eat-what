@@ -1,0 +1,37 @@
+name: Release gate proof
+
+on:
+  push:
+    branches:
+      - "agent/niuma20/release-gate-proof"
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out release-gate tooling
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install browser runtime
+        run: npx playwright install --with-deps chromium
+        working-directory: lunch-picker
+
+      - name: Run release gate
+        run: |
+          node tools/release-gate/release-gate.js \
+            --repo https://github.com/CST18057/yeah-a-eat-what.git \
+            --ref de4e2b958e2e1638e8c19e19b8c159cf6eee82ed \
+            --output release-gate.json
+
+      - name: Upload release-gate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-gate-de4e2b9
+          path: release-gate.json
+          if-no-files-found: error
