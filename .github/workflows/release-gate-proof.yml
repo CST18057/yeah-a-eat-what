@@ -1,5 +1,6 @@
 name: Release gate proof
 
+# Repeat runs are compared by the report's normalized resultFingerprint.
 on:
   push:
     branches:
