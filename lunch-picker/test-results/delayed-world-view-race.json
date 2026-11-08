@@ -15,16 +15,19 @@
       {
         "method": "GET",
         "pathname": "/api/regions",
+        "url": "http://127.0.0.1:4174/api/regions",
         "body": ""
       },
       {
         "method": "GET",
         "pathname": "/api/regions/beijing/places",
+        "url": "http://127.0.0.1:4174/api/regions/beijing/places",
         "body": ""
       },
       {
         "method": "POST",
         "pathname": "/api/spin",
+        "url": "http://127.0.0.1:4174/api/spin",
         "body": "{\"regionId\":\"beijing\"}"
       }
     ]
@@ -45,16 +48,19 @@
       {
         "method": "GET",
         "pathname": "/api/regions",
+        "url": "http://127.0.0.1:4174/api/regions",
         "body": ""
       },
       {
         "method": "GET",
         "pathname": "/api/regions/beijing/places",
+        "url": "http://127.0.0.1:4174/api/regions/beijing/places",
         "body": ""
       },
       {
         "method": "POST",
         "pathname": "/api/spin",
+        "url": "http://127.0.0.1:4174/api/spin",
         "body": "{\"regionId\":\"beijing\"}"
       }
     ]

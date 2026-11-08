@@ -1,0 +1,56 @@
+{
+  "limitedState": {
+    "hidden": false,
+    "status": "rate_limited",
+    "requestId": "4",
+    "source": "",
+    "limit": 40,
+    "total": 0,
+    "returned": 0,
+    "truncated": false,
+    "errorCode": "RATE_LIMITED",
+    "retryAfterSeconds": 2,
+    "bounds": {
+      "west": -12.88,
+      "south": -11.92,
+      "east": 12.88,
+      "north": 13.76
+    },
+    "cacheKey": "explore:v1:-12.88:-11.92:12.88:13.76:40",
+    "updatedAt": 1794131626511
+  },
+  "finalState": {
+    "hidden": false,
+    "status": "ready",
+    "requestId": "5",
+    "source": "network",
+    "limit": 40,
+    "total": 3,
+    "returned": 3,
+    "truncated": false,
+    "errorCode": "",
+    "retryAfterSeconds": null,
+    "bounds": {
+      "west": -12.88,
+      "south": -11.92,
+      "east": 12.88,
+      "north": 13.76
+    },
+    "cacheKey": "explore:v1:-12.88:-11.92:12.88:13.76:40",
+    "updatedAt": 1794131628578
+  },
+  "exploreRequests": [
+    {
+      "method": "GET",
+      "pathname": "/api/explore",
+      "url": "http://127.0.0.1:4174/api/explore?west=-12.88&south=-11.92&east=12.88&north=13.76&limit=40",
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/explore",
+      "url": "http://127.0.0.1:4174/api/explore?west=-12.88&south=-11.92&east=12.88&north=13.76&limit=40",
+      "body": ""
+    }
+  ]
+}

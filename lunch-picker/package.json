@@ -1,13 +1,17 @@
 {
   "name": "lunch-picker",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "private": true,
   "description": "A small city lunch picker with Leaflet place markers",
   "scripts": {
     "start": "node server.js",
     "test": "node --test server.test.js",
     "test:browser": "node browser-check.js",
-    "postinstall": "playwright install chromium"
+    "install:browser": "playwright install chromium",
+    "test:cross-feature": "node cross-feature-check.js",
+    "audit:food-images": "node catalog/audit-food-images.js",
+    "verify:food-sources": "node catalog/verify-food-sources.js",
+    "test:spin-real": "node spin-real-check.js"
   },
   "dependencies": {
     "leaflet": "1.9.4"

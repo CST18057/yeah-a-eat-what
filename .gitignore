@@ -5,4 +5,7 @@ playwright-report/
 *.jpg
 *.jpeg
 *.webp
+!lunch-picker/public/food/*.jpg
+!lunch-picker/public/food/*.jpeg
+!lunch-picker/public/food/*.webp
 .DS_Store

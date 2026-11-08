@@ -1,0 +1,90 @@
+{
+  "desktop": [
+    {
+      "placeId": "beijing-nanluoguxiang",
+      "foodId": "beijing-zhajiangmian",
+      "dish": "炸酱面",
+      "image": "/food/beijing-zhajiangmian.jpg",
+      "selection": {
+        "repeated": false,
+        "repeatReason": null,
+        "totalCandidates": 15,
+        "eligibleCandidates": 15,
+        "excludedCandidates": 0
+      },
+      "excludeCount": 0
+    },
+    {
+      "placeId": "beijing-wangfujing",
+      "foodId": "beijing-peking-duck",
+      "dish": "北京烤鸭",
+      "image": "/food/beijing-peking-duck.jpg",
+      "selection": {
+        "repeated": false,
+        "repeatReason": null,
+        "totalCandidates": 15,
+        "eligibleCandidates": 8,
+        "excludedCandidates": 7
+      },
+      "excludeCount": 1
+    },
+    {
+      "placeId": "beijing-qianmen",
+      "foodId": "beijing-jianbing",
+      "dish": "煎饼",
+      "image": "/food/beijing-jianbing.jpg",
+      "selection": {
+        "repeated": false,
+        "repeatReason": null,
+        "totalCandidates": 15,
+        "eligibleCandidates": 3,
+        "excludedCandidates": 12
+      },
+      "excludeCount": 2
+    }
+  ],
+  "mobile": [
+    {
+      "placeId": "beijing-guijie",
+      "foodId": "beijing-jianbing",
+      "dish": "煎饼",
+      "image": "/food/beijing-jianbing.jpg",
+      "selection": {
+        "repeated": false,
+        "repeatReason": null,
+        "totalCandidates": 15,
+        "eligibleCandidates": 15,
+        "excludedCandidates": 0
+      },
+      "excludeCount": 0
+    },
+    {
+      "placeId": "beijing-nanluoguxiang",
+      "foodId": "beijing-zhajiangmian",
+      "dish": "炸酱面",
+      "image": "/food/beijing-zhajiangmian.jpg",
+      "selection": {
+        "repeated": false,
+        "repeatReason": null,
+        "totalCandidates": 15,
+        "eligibleCandidates": 8,
+        "excludedCandidates": 7
+      },
+      "excludeCount": 1
+    },
+    {
+      "placeId": "beijing-wangfujing",
+      "foodId": "beijing-peking-duck",
+      "dish": "北京烤鸭",
+      "image": "/food/beijing-peking-duck.jpg",
+      "selection": {
+        "repeated": false,
+        "repeatReason": null,
+        "totalCandidates": 15,
+        "eligibleCandidates": 3,
+        "excludedCandidates": 12
+      },
+      "excludeCount": 2
+    }
+  ]
+}

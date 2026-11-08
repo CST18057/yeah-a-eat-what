@@ -1,0 +1,13 @@
+{
+  "finalCity": "tokyo",
+  "placeRequests": [
+    {
+      "method": "GET",
+      "pathname": "/api/regions/tokyo/places",
+      "url": "http://127.0.0.1:4318/api/regions/tokyo/places",
+      "body": ""
+    }
+  ],
+  "exploreRequestsAfterConfirm": 0,
+  "finalResult": "築地場外市場"
+}

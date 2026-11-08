@@ -38,6 +38,88 @@ const namesByRegion = {
   "new-york": ["Chelsea Market", "Grand Central Terminal", "Essex Market", "Queens Night Market", "Brooklyn Borough Hall Greenmarket"],
 };
 
+const foodByRegion = {
+  beijing: {
+    dish: "北京烤鸭",
+    image: "/food/beijing-peking-duck.jpg",
+    alt: "盘中片好的北京烤鸭示例图片",
+    credit: "Wikimedia Commons · CC BY-SA 4.0 · Mcyjerry",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Peking_duck_with_sugar_scallion.jpg",
+    licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
+  },
+  shanghai: {
+    dish: "小笼包",
+    image: "/food/shanghai-xiaolongbao.jpg",
+    alt: "蒸笼里的小笼包示例图片",
+    credit: "Wikimedia Commons · CC BY 2.0 · Junhao!",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Xiao_Long_Bao_by_Junhao!.jpg",
+    licenseUrl: "https://creativecommons.org/licenses/by/2.0/",
+  },
+  guangzhou: {
+    dish: "广式点心",
+    image: "/food/guangzhou-dim-sum.jpg",
+    alt: "摆满蒸笼的广式点心示例图片",
+    credit: "Wikimedia Commons · CC0 · afterdog",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:Dim_Sum_Breakfast.jpg",
+    licenseUrl: "https://creativecommons.org/publicdomain/zero/1.0/",
+  },
+  chengdu: {
+    dish: "四川火锅",
+    image: "/food/chengdu-hotpot.jpg",
+    alt: "红汤四川火锅与配菜示例图片",
+    credit: "Wikimedia Commons · CC0 · Fumikas Sagisavas",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Sichuan-style_hotpot.jpg",
+    licenseUrl: "https://creativecommons.org/publicdomain/zero/1.0/",
+  },
+  xian: {
+    dish: "肉夹馍",
+    image: "/food/xian-roujiamo.jpg",
+    alt: "肉夹馍与豆腐汤示例图片",
+    credit: "Wikimedia Commons · CC0 · Suginami",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Roujiamo_and_Laoling_Laodoufu.jpg",
+    licenseUrl: "https://creativecommons.org/publicdomain/zero/1.0/",
+  },
+  tokyo: {
+    dish: "寿司",
+    image: "/food/tokyo-sushi.jpg",
+    alt: "黑色餐盘上的寿司拼盘示例图片",
+    credit: "Wikimedia Commons · CC0 · Mojmir Churavy",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Sushi_Plate_in_Organic_Sushi_Prague_4.jpg",
+    licenseUrl: "https://creativecommons.org/publicdomain/zero/1.0/",
+  },
+  singapore: {
+    dish: "叻沙",
+    image: "/food/singapore-laksa.jpg",
+    alt: "一碗叻沙汤面示例图片",
+    credit: "Wikimedia Commons · CC0 · Andy Li",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Noo.Meat_Laksa_-_Noo.Me_2024-12-02.jpg",
+    licenseUrl: "https://creativecommons.org/publicdomain/zero/1.0/",
+  },
+  berlin: {
+    dish: "咖喱肠",
+    image: "/food/berlin-currywurst.jpg",
+    alt: "咖喱肠配薯条示例图片",
+    credit: "Wikimedia Commons · CC0 · Jrcraft Yt",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:Currywurst_2019.jpg",
+    licenseUrl: "https://creativecommons.org/publicdomain/zero/1.0/",
+  },
+  "new-york": {
+    dish: "贝果",
+    image: "/food/new-york-bagel.jpg",
+    alt: "夹烟熏三文鱼的芝麻贝果示例图片",
+    credit: "Wikimedia Commons · CC0 · Funknendai",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Montreal_bagel_with_lox.jpg",
+    licenseUrl: "https://creativecommons.org/publicdomain/zero/1.0/",
+  },
+};
+
 function placesFor(regionId) {
   const region = regionFixtures.find((item) => item.id === regionId);
   return namesByRegion[regionId].map((name, index) => ({
@@ -48,13 +130,38 @@ function placesFor(regionId) {
     lng: region.center.lng + (index - 2) * 0.006,
     address: `${region.name}示例路 ${index + 1} 号`,
     source: "OpenStreetMap",
+    food: foodByRegion[regionId],
   }));
 }
 
-async function routeJson(route, status, payload) {
+function explorePlacesForBounds(bounds, count = 3, batch = 1) {
+  return Array.from({ length: count }, (_, index) => ({
+    id: `explore-${batch}-${index + 1}`,
+    name: `探索地点 ${batch}-${index + 1}`,
+    cityId: "beijing",
+    cityName: "北京",
+    lat:
+      bounds.south +
+      ((index + 1) / (count + 1)) * (bounds.north - bounds.south),
+    lng:
+      bounds.west +
+      ((index + 1) / (count + 1)) * (bounds.east - bounds.west),
+    cuisine: "公开示例",
+    address: "探索区域示例地址",
+    source: {
+      provider: "OpenStreetMap",
+      type: "node",
+      id: 9000 + index,
+      url: `https://www.openstreetmap.org/node/${9000 + index}`,
+    },
+  }));
+}
+
+async function routeJson(route, status, payload, headers = {}) {
   await route.fulfill({
     status,
     contentType: "application/json; charset=utf-8",
+    headers,
     body: JSON.stringify(payload),
   });
 }
@@ -86,6 +193,7 @@ async function installApiRoutes(page, options = {}) {
     });
   });
 
+  let spinSequenceIndex = 0;
   await page.route("**/api/spin", async (route) => {
     const body = route.request().postDataJSON();
     const id = body.regionId;
@@ -93,11 +201,149 @@ async function installApiRoutes(page, options = {}) {
       await new Promise((resolve) => setTimeout(resolve, options.delaySpin));
     }
     const region = regionFixtures.find((item) => item.id === id);
+    if (options.spinSequence?.length) {
+      const configured =
+        options.spinSequence[
+          Math.min(spinSequenceIndex, options.spinSequence.length - 1)
+        ];
+      spinSequenceIndex += 1;
+      await routeJson(route, 200, {
+        region,
+        ...configured,
+      });
+      return;
+    }
     const places = placesFor(id);
     await routeJson(route, 200, {
       region,
       place: places[0],
     });
+  });
+
+  let exploreCallCount = 0;
+  await page.route(/\/api\/explore(?:\?.*)?$/, async (route) => {
+    exploreCallCount += 1;
+    const modes = options.exploreModes || [];
+    const mode =
+      modes[Math.min(exploreCallCount - 1, modes.length - 1)] ||
+      options.exploreMode ||
+      "success";
+    const configuredDelay =
+      options.exploreDelayByCall?.[exploreCallCount - 1] ??
+      options.exploreDelay ??
+      0;
+    if (configuredDelay || mode === "network_timeout") {
+      await new Promise((resolve) =>
+        setTimeout(
+          resolve,
+          mode === "network_timeout" ? 6000 : configuredDelay,
+        ),
+      );
+    }
+    if (mode === "network_timeout") {
+      try {
+        await route.abort("timedout");
+      } catch {}
+      return;
+    }
+
+    const url = new URL(route.request().url());
+    const bounds = {
+      west: Number(url.searchParams.get("west")),
+      south: Number(url.searchParams.get("south")),
+      east: Number(url.searchParams.get("east")),
+      north: Number(url.searchParams.get("north")),
+    };
+    const limit = Number(url.searchParams.get("limit") || 40);
+
+    if (mode === "empty") {
+      await routeJson(route, 200, {
+        version: "0.5.0",
+        bounds,
+        limit,
+        total: 0,
+        returned: 0,
+        truncated: false,
+        places: [],
+      });
+      return;
+    }
+    if (mode === "truncated") {
+      const places = explorePlacesForBounds(bounds, 2, exploreCallCount);
+      await routeJson(route, 200, {
+        version: "0.5.0",
+        bounds,
+        limit,
+        total: 7,
+        returned: places.length,
+        truncated: true,
+        places,
+      });
+      return;
+    }
+    if (mode === "too_large") {
+      await routeJson(route, 400, {
+        error: {
+          code: "REGION_TOO_LARGE",
+          message: "Region is too large",
+        },
+      });
+      return;
+    }
+    if (mode === "rate_limited") {
+      await routeJson(
+        route,
+        429,
+        {
+          error: {
+            code: "RATE_LIMITED",
+            message: "Too many explore requests",
+          },
+          retryAfterSeconds: 2,
+        },
+        { "Retry-After": "2" },
+      );
+      return;
+    }
+    if (mode === "server_timeout") {
+      await routeJson(route, 504, {
+        error: {
+          code: "EXPLORE_TIMEOUT",
+          message: "Explore request timed out",
+        },
+      });
+      return;
+    }
+    if (mode === "error") {
+      await routeJson(route, 500, {
+        error: {
+          code: "INTERNAL_ERROR",
+          message: "Explore request failed",
+        },
+      });
+      return;
+    }
+
+    const places = explorePlacesForBounds(bounds, 3, exploreCallCount);
+    try {
+      await routeJson(route, 200, {
+        version: "0.5.0",
+        bounds,
+        limit,
+        total: places.length,
+        returned: places.length,
+        truncated: false,
+        places,
+      });
+    } catch (error) {
+      if (
+        !/Route is already handled|Target page, context or browser has been closed/.test(
+          error.message,
+        )
+      ) {
+        throw error;
+      }
+    }
   });
 
   if (options.failTiles) {
@@ -110,6 +356,10 @@ async function installApiRoutes(page, options = {}) {
         body: mapTileFixture,
       }),
     );
+  }
+
+  if (options.failFoodImages) {
+    await page.route("**/food/**", (route) => route.abort());
   }
 }
 
@@ -178,6 +428,7 @@ async function openPage(browser, viewport, options) {
       apiRequests.push({
         method: request.method(),
         pathname,
+        url: request.url(),
         body: request.postData() || "",
       });
     }
@@ -218,6 +469,70 @@ async function mapState(page) {
       lng: Number(map.dataset.centerLng),
     };
   });
+}
+
+async function exploreState(page) {
+  return page.locator("#explore-toolbar").evaluate((element) => ({
+    hidden: element.hidden,
+    status: element.dataset.status,
+    requestId: element.dataset.requestId,
+    source: element.dataset.source,
+    limit: Number(element.dataset.limit),
+    total: Number(element.dataset.total),
+    returned: Number(element.dataset.returned),
+    truncated: element.dataset.truncated === "true",
+    errorCode: element.dataset.errorCode,
+    retryAfterSeconds:
+      element.dataset.retryAfterSeconds === ""
+        ? null
+        : Number(element.dataset.retryAfterSeconds),
+    bounds: element.dataset.bounds ? JSON.parse(element.dataset.bounds) : null,
+    cacheKey: element.dataset.cacheKey,
+    updatedAt: Number(element.dataset.updatedAt),
+  }));
+}
+
+async function zoomWorldMapWithWheel(page, targetZoom = 4) {
+  await page.locator("#map").hover();
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    const zoom = Number(
+      await page.locator("#map").getAttribute("data-zoom"),
+    );
+    if (zoom >= targetZoom) {
+      return;
+    }
+    await page.mouse.wheel(0, -700);
+    await page.waitForTimeout(120);
+  }
+  throw new Error(`Map did not reach zoom ${targetZoom}`);
+}
+
+async function zoomWorldMapWithTouch(context, page, targetZoom = 4) {
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const zoom = Number(
+      await page.locator("#map").getAttribute("data-zoom"),
+    );
+    if (zoom >= targetZoom) {
+      return;
+    }
+    await pinchToZoom(context, page);
+    await page.waitForTimeout(150);
+  }
+  throw new Error(`Touch map did not reach zoom ${targetZoom}`);
+}
+
+async function zoomWorldMapWithControls(page, targetZoom = 4) {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const zoom = Number(
+      await page.locator("#map").getAttribute("data-zoom"),
+    );
+    if (zoom >= targetZoom) {
+      return;
+    }
+    await page.locator(".leaflet-control-zoom-in").click();
+    await page.waitForTimeout(150);
+  }
+  throw new Error(`Map controls did not reach zoom ${targetZoom}`);
 }
 
 function intersectionArea(first, second) {
@@ -342,6 +657,22 @@ const tests = [
       assert.match(await page.locator("#city-count").textContent(), /9 城/);
       assert.match(await page.locator("#place-count").textContent(), /5 处/);
       assert.match(await page.locator("#map-caption").textContent(), /北京/);
+      assert.equal(
+        await page
+          .locator(
+            '.source-note a[href="https://www.openstreetmap.org/copyright"]',
+          )
+          .textContent(),
+        "OpenStreetMap contributors",
+      );
+      assert.equal(
+        await page
+          .locator(
+            '.source-note a[href="https://opendatacommons.org/licenses/odbl/1-0/"]',
+          )
+          .textContent(),
+        "ODbL",
+      );
       await assertNoOverflow(page);
 
       await page.locator("#spin-button").click();
@@ -349,8 +680,78 @@ const tests = [
         () => document.querySelector("#result-name")?.textContent === "北京烤鸭",
       );
       assert.match(await page.locator("#global-status").textContent(), /北京烤鸭/);
+      assert.equal(await page.locator("#result-media").isVisible(), true);
+      assert.equal(await page.locator("#result-image").isVisible(), true);
+      assert.equal(
+        await page.locator("#result-image").evaluate((image) => image.naturalWidth > 0),
+        true,
+      );
+      assert.match(await page.locator("#result-image").getAttribute("alt"), /示例图片/);
+      assert.match(
+        await page.locator("#result-image-credit").textContent(),
+        /Wikimedia Commons.*Mcyjerry/,
+      );
+      assert.deepEqual(
+        await page
+          .locator("#result-image-credit a")
+          .evaluateAll((links) => links.map((link) => link.textContent)),
+        ["素材页", "许可证"],
+      );
+      assert.equal(
+        await page.locator("#result-image-credit a").nth(0).getAttribute("href"),
+        "https://commons.wikimedia.org/wiki/File:Peking_duck_with_sugar_scallion.jpg",
+      );
+      assert.equal(
+        await page.locator("#result-image-credit a").nth(1).getAttribute("href"),
+        "https://creativecommons.org/licenses/by-sa/4.0/",
+      );
+      const desktopResultCard = await page.locator("#result-card").boundingBox();
+      const desktopResultMedia = await page.locator("#result-media").boundingBox();
+      assert.ok(
+        desktopResultMedia.x >= desktopResultCard.x &&
+          desktopResultMedia.x + desktopResultMedia.width <=
+            desktopResultCard.x + desktopResultCard.width,
+        "Desktop food image exceeds the result card",
+      );
       await page.waitForSelector(".popup-name");
       assert.equal(await page.locator(".popup-name").textContent(), "北京烤鸭");
+      await page.waitForFunction(() => {
+        const popup = document.querySelector(".leaflet-popup");
+        const image = document.querySelector(".popup-food-image");
+        return (
+          popup &&
+          getComputedStyle(popup).opacity === "1" &&
+          image &&
+          !image.hidden &&
+          getComputedStyle(image).display !== "none" &&
+          getComputedStyle(image).visibility !== "hidden" &&
+          image.complete &&
+          image.naturalWidth > 0
+        );
+      });
+      await page.locator(".popup-food-image").scrollIntoViewIfNeeded();
+      await page
+        .locator(".popup-food-image")
+        .waitFor({ state: "visible" });
+      assert.equal(await page.locator(".popup-food-image").isVisible(), true);
+      assert.deepEqual(
+        await page
+          .locator(".popup-food-caption a")
+          .evaluateAll((links) => links.map((link) => link.textContent)),
+        ["素材页", "许可证"],
+      );
+      assert.equal(
+        await page
+          .locator(".popup-food-image")
+          .evaluate((image) => image.naturalWidth > 0),
+        true,
+      );
+      assert.equal(
+        await page.locator(".popup-food").evaluate((media) =>
+          media.closest("[data-place-id]")?.dataset.placeId,
+        ),
+        await page.locator("#result-card").getAttribute("data-place-id"),
+      );
       await page.screenshot({
         path: path.join(outputDir, "desktop-core.png"),
         fullPage: true,
@@ -398,14 +799,298 @@ const tests = [
       await page.waitForFunction(
         () => document.querySelector("#result-name")?.textContent === "北京烤鸭",
       );
+      assert.equal(await page.locator("#result-media").isVisible(), true);
+      assert.equal(await page.locator("#result-image").isVisible(), true);
+      const mobileResultCard = await page.locator("#result-card").boundingBox();
+      const mobileResultMedia = await page.locator("#result-media").boundingBox();
+      assert.ok(
+        mobileResultMedia.x >= mobileResultCard.x &&
+          mobileResultMedia.x + mobileResultMedia.width <=
+            mobileResultCard.x + mobileResultCard.width,
+        "Mobile food image exceeds the result card",
+      );
       await page.waitForSelector(".popup-name");
       assert.equal(await page.locator(".popup-name").textContent(), "北京烤鸭");
+      await page.waitForFunction(() => {
+        const popup = document.querySelector(".leaflet-popup");
+        const image = document.querySelector(".popup-food-image");
+        return (
+          popup &&
+          getComputedStyle(popup).opacity === "1" &&
+          image &&
+          image.complete &&
+          image.naturalWidth > 0
+        );
+      });
+      await page.locator(".popup-food-image").scrollIntoViewIfNeeded();
+      await page
+        .locator(".popup-food-image")
+        .waitFor({ state: "visible" });
+      assert.equal(await page.locator(".popup-food-image").isVisible(), true);
       await page.screenshot({
         path: path.join(outputDir, "mobile-core.png"),
         fullPage: true,
       });
       assert.deepEqual(pageErrors, []);
       await context.close();
+    },
+  },
+  {
+    name: "consecutive spins avoid repeating place and food",
+    async run(browser) {
+      const places = placesFor("beijing");
+      const foodA = {
+        foodId: "beijing-duck-a",
+        dish: "北京烤鸭",
+        image: "/food/beijing-peking-duck.jpg",
+        alt: "北京烤鸭示例图片",
+        credit: "测试示例来源",
+        sourceUrl:
+          "https://commons.wikimedia.org/wiki/File:Peking_duck_with_sugar_scallion.jpg",
+        licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
+      };
+      const foodB = {
+        foodId: "beijing-noodle-b",
+        dish: "炸酱面",
+        image: "/food/shanghai-xiaolongbao.jpg",
+        alt: "炸酱面示例图片",
+        credit: "测试示例来源",
+        sourceUrl:
+          "https://commons.wikimedia.org/wiki/File:Xiao_Long_Bao_by_Junhao!.jpg",
+        licenseUrl: "https://creativecommons.org/licenses/by/2.0/",
+      };
+      const selected = [
+        {
+          place: { ...places[0], food: foodA },
+          selection: {
+            repeated: false,
+            repeatReason: null,
+            totalCandidates: 2,
+            eligibleCandidates: 2,
+            excludedCandidates: 0,
+          },
+        },
+        {
+          place: { ...places[1], food: foodB },
+          selection: {
+            repeated: false,
+            repeatReason: null,
+            totalCandidates: 2,
+            eligibleCandidates: 1,
+            excludedCandidates: 1,
+          },
+        },
+        {
+          place: { ...places[0], food: foodA },
+          selection: {
+            repeated: true,
+            repeatReason: "ALL_CANDIDATES_EXCLUDED",
+            totalCandidates: 2,
+            eligibleCandidates: 0,
+            excludedCandidates: 2,
+          },
+        },
+      ];
+      const sequence = [...selected, ...selected];
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { spinSequence: sequence },
+      );
+
+      async function playCycle(viewportName) {
+        await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+        await waitForCityReady(page);
+        await waitForMarkers(page);
+
+        await page.locator("#spin-button").click();
+        await page.waitForFunction(
+          () => document.querySelector("#result-name")?.textContent === "北京烤鸭",
+        );
+        const firstImage = await page.locator("#result-image").getAttribute("src");
+
+        await page.locator("#spin-button").click();
+        await page.waitForFunction(
+          () => document.querySelector("#result-name")?.textContent === "炸酱面馆",
+        );
+        const secondImage = await page.locator("#result-image").getAttribute("src");
+        assert.notEqual(firstImage, secondImage);
+
+        await page.locator("#spin-button").click();
+        await page.waitForFunction(() =>
+          document
+            .querySelector("#global-status")
+            ?.textContent.includes("可选美食已轮完"),
+        );
+
+        const spinRequests = apiRequests.filter(
+          (request) => request.pathname === "/api/spin",
+        );
+        const cycleRequests = spinRequests.slice(-3);
+        assert.equal(cycleRequests.length, 3);
+        const bodies = cycleRequests.map((request) => JSON.parse(request.body));
+        assert.equal(bodies[0].exclude, undefined);
+        assert.equal(bodies[1].exclude.length, 1);
+        assert.equal(bodies[1].exclude[0].placeId, places[0].id);
+        assert.equal(bodies[1].exclude[0].foodId, foodA.foodId);
+        assert.equal(bodies[2].exclude.length, 2);
+        assert.equal(bodies[2].exclude[1].foodId, foodB.foodId);
+
+        await page.screenshot({
+          path: path.join(outputDir, `spin-exclusion-${viewportName}.png`),
+          fullPage: true,
+        });
+        assert.deepEqual(pageErrors, []);
+      }
+
+      await playCycle("desktop");
+      await page.setViewportSize({ width: 390, height: 844 });
+      await playCycle("mobile");
+      await context.close();
+    },
+  },
+  {
+    name: "real spin keeps result card and map popup food binding aligned",
+    async run(browser) {
+      const viewports = [
+        { width: 1280, height: 900, suffix: "desktop" },
+        { width: 390, height: 844, suffix: "mobile" },
+      ];
+
+      for (const viewport of viewports) {
+        const context = await browser.newContext({
+          viewport,
+          reducedMotion: "reduce",
+          deviceScaleFactor: 1,
+          hasTouch: viewport.width <= 520,
+          isMobile: viewport.width <= 520,
+        });
+        const page = await context.newPage();
+        const pageErrors = [];
+        page.on("pageerror", (error) => pageErrors.push(error.message));
+        await page.route(/appmaptile/, (route) =>
+          route.fulfill({
+            status: 200,
+            contentType: "image/svg+xml",
+            body: mapTileFixture,
+          }),
+        );
+
+        await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+        await waitForCityReady(page);
+        await waitForMarkers(page);
+
+        const placesPayload = await fetch(
+          `${baseUrl}/api/regions/beijing/places`,
+        ).then((response) => response.json());
+        const defaultFoodId = placesPayload.places[0].food.foodId;
+        let sawDifferentFood = false;
+
+        for (let spinIndex = 0; spinIndex < 6; spinIndex += 1) {
+          const spinResponsePromise = page.waitForResponse(
+            (response) =>
+              new URL(response.url()).pathname === "/api/spin" &&
+              response.request().method() === "POST",
+          );
+          await page.locator("#spin-button").click();
+          const spinResponse = await spinResponsePromise;
+          assert.equal(spinResponse.status(), 200);
+          const spinPayload = await spinResponse.json();
+          const expected = spinPayload.place;
+          sawDifferentFood ||= expected.food.foodId !== defaultFoodId;
+
+          await page.waitForFunction(
+            (placeId) =>
+              document.querySelector("#result-card")?.dataset.placeId ===
+              placeId,
+            expected.id,
+          );
+          await page.waitForFunction(
+            (foodId) =>
+              document.querySelector(".popup-food")?.closest("[data-place-id]")
+                ?.dataset.foodId === foodId,
+            expected.food.foodId,
+          );
+
+          const resultBinding = await page
+            .locator("#result-card")
+            .evaluate((card) => ({
+              placeId: card.dataset.placeId,
+              foodId: card.dataset.foodId,
+              dish: card.dataset.foodDish,
+              image: card.dataset.foodImage,
+            }));
+          const popupBinding = await page
+            .locator(".popup-food")
+            .evaluate((media) => {
+              const wrapper = media.closest("[data-place-id]");
+              return {
+                placeId: wrapper?.dataset.placeId,
+                foodId: wrapper?.dataset.foodId,
+                dish: wrapper?.dataset.foodDish,
+                image: wrapper?.dataset.foodImage,
+                imageSrc: media
+                  .querySelector(".popup-food-image")
+                  ?.getAttribute("src"),
+                caption:
+                  media.querySelector(".popup-food-caption")?.textContent || "",
+              };
+            });
+          const expectedBinding = {
+            placeId: expected.id,
+            foodId: expected.food.foodId,
+            dish: expected.food.dish,
+            image: expected.food.image,
+          };
+
+          assert.deepEqual(resultBinding, expectedBinding);
+          assert.deepEqual(
+            {
+              placeId: popupBinding.placeId,
+              foodId: popupBinding.foodId,
+              dish: popupBinding.dish,
+              image: popupBinding.image,
+            },
+            expectedBinding,
+          );
+          assert.equal(popupBinding.imageSrc, expected.food.image);
+          assert.ok(popupBinding.caption.includes(expected.food.dish));
+          await page.waitForFunction(() => {
+            const popup = document.querySelector(".leaflet-popup");
+            const image = document.querySelector(".popup-food-image");
+            return (
+              popup &&
+              getComputedStyle(popup).opacity === "1" &&
+              image &&
+              !image.hidden &&
+              getComputedStyle(image).display !== "none" &&
+              getComputedStyle(image).visibility !== "hidden" &&
+              image.complete &&
+              image.naturalWidth > 0
+            );
+          });
+
+          if (sawDifferentFood) {
+            break;
+          }
+        }
+
+        assert.equal(
+          sawDifferentFood,
+          true,
+          "real spin must exercise a food different from the default place food",
+        );
+        assert.deepEqual(pageErrors, []);
+
+        await page.screenshot({
+          path: path.join(
+            outputDir,
+            `real-spin-food-binding-${viewport.suffix}.png`,
+          ),
+          fullPage: true,
+        });
+        await context.close();
+      }
     },
   },
   {
@@ -1577,6 +2262,811 @@ const tests = [
     },
   },
   {
+    name: "explicit exploration is dirty-gated and cached",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { exploreDelay: 200 },
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+
+      const selectedCity = await page.locator("#city-select").inputValue();
+      const placesText = await page.locator("#places-list").textContent();
+      const resultText = await page.locator("#result-name").textContent();
+      assert.equal(await page.locator("#explore-toolbar").isVisible(), false);
+      apiRequests.length = 0;
+
+      await page.locator("#world-view-button").click();
+      await page.waitForFunction(
+        () => !document.querySelector("#explore-toolbar")?.hidden,
+      );
+      assert.equal((await exploreState(page)).status, "idle");
+      assert.equal(
+        apiRequests.filter((request) => request.pathname === "/api/explore")
+          .length,
+        0,
+      );
+
+      await dragMapWithMouse(page, 80, 40);
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "dirty",
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 0);
+      await zoomWorldMapWithWheel(page, 4);
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "dirty",
+      );
+      assert.equal(
+        apiRequests.filter((request) => request.pathname === "/api/explore")
+          .length,
+        0,
+      );
+
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "loading",
+      );
+      assert.equal(
+        await page.locator("#explore-button").getAttribute("aria-busy"),
+        "true",
+      );
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+
+      const readyState = await exploreState(page);
+      assert.equal(readyState.source, "network");
+      assert.equal(readyState.total, 3);
+      assert.equal(readyState.returned, 3);
+      assert.equal(readyState.limit, 40);
+      assert.equal(await page.locator(".explore-marker").count(), 3);
+      assert.equal(await page.locator(".place-marker-icon").count(), 5);
+      assert.equal(await page.locator(".city-marker").count(), 9);
+      assert.equal(await page.locator("#city-select").inputValue(), selectedCity);
+      assert.equal(await page.locator("#places-list").textContent(), placesText);
+      assert.equal(await page.locator("#result-name").textContent(), resultText);
+      assert.equal(
+        await page
+          .locator("#world-view-button")
+          .getAttribute("aria-pressed"),
+        "true",
+      );
+
+      const exploreRequests = apiRequests.filter(
+        (request) => request.pathname === "/api/explore",
+      );
+      assert.equal(exploreRequests.length, 1);
+      const requestUrl = new URL(exploreRequests[0].url);
+      for (const name of ["west", "south", "east", "north"]) {
+        assert.match(requestUrl.searchParams.get(name), /^-?\d+\.\d{2}$/);
+      }
+      assert.equal(requestUrl.searchParams.get("limit"), "40");
+      await page.screenshot({
+        path: path.join(outputDir, "explore-ready.png"),
+        fullPage: true,
+      });
+      await page.locator(".explore-marker").first().click();
+      await page.waitForSelector(".explore-popup-name");
+      assert.match(
+        await page.locator(".explore-popup-source").textContent(),
+        /探索地点 · OpenStreetMap/,
+      );
+      await page.locator(".leaflet-popup-close-button").click();
+
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.source ===
+          "cache",
+      );
+      const cacheState = await exploreState(page);
+      assert.equal(
+        apiRequests.filter((request) => request.pathname === "/api/explore")
+          .length,
+        1,
+      );
+
+      await page.locator("#explore-clear-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "idle",
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 0);
+      await page.locator("#return-city-button").click();
+      assert.equal(await page.locator("#explore-toolbar").isVisible(), false);
+      await fs.writeFile(
+        path.join(outputDir, "explore-explicit.json"),
+        `${JSON.stringify(
+          {
+            selectedCity,
+            automaticExploreRequestsBeforeClick: 0,
+            networkState: readyState,
+            cacheState,
+            exploreRequests,
+            clearResetStatus: "idle",
+            currentCityExitHidden: true,
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "keyboard map navigation invalidates exploration",
+    async run(browser) {
+      const evidence = [];
+
+      {
+        const { context, page, pageErrors } = await openPage(
+          browser,
+          { width: 1280, height: 900 },
+          {},
+        );
+        await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+        await waitForCityReady(page);
+        await waitForMarkers(page);
+        await waitForCityMarkers(page);
+        const selectedCity = await page.locator("#city-select").inputValue();
+        const resultText = await page.locator("#result-name").textContent();
+        const placesText = await page.locator("#places-list").textContent();
+
+        await page.locator("#world-view-button").click();
+        await zoomWorldMapWithWheel(page, 4);
+        await page.locator("#explore-button").click();
+        await page.waitForFunction(
+          () =>
+            document.querySelector("#explore-toolbar")?.dataset.status ===
+            "ready",
+        );
+        const before = await mapState(page);
+        await page.locator("#map").focus();
+        await page.keyboard.press("ArrowRight");
+        await page.waitForFunction(
+          () =>
+            document.querySelector("#explore-toolbar")?.dataset.status ===
+            "dirty",
+        );
+        await page.waitForTimeout(400);
+        const after = await mapState(page);
+
+        assert.ok(after.lng !== before.lng);
+        assert.equal(await page.locator(".explore-marker").count(), 0);
+        assert.equal(await page.locator("#city-select").inputValue(), selectedCity);
+        assert.equal(await page.locator("#result-name").textContent(), resultText);
+        assert.equal(await page.locator("#places-list").textContent(), placesText);
+        evidence.push({
+          scenario: "ready-result",
+          before,
+          after,
+          status: (await exploreState(page)).status,
+        });
+        assert.deepEqual(pageErrors, []);
+        await context.close();
+      }
+
+      {
+        const { context, page, pageErrors, apiRequests } = await openPage(
+          browser,
+          { width: 1280, height: 900 },
+          { exploreDelay: 700 },
+        );
+        await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+        await waitForCityReady(page);
+        await waitForMarkers(page);
+        await waitForCityMarkers(page);
+        apiRequests.length = 0;
+
+        await page.locator("#world-view-button").click();
+        await zoomWorldMapWithWheel(page, 4);
+        await page.locator("#explore-button").click();
+        await page.waitForFunction(
+          () =>
+            document.querySelector("#explore-toolbar")?.dataset.status ===
+            "loading",
+        );
+        await page.locator("#map").focus();
+        await page.keyboard.press("ArrowRight");
+        await page.waitForFunction(
+          () =>
+            document.querySelector("#explore-toolbar")?.dataset.status ===
+            "dirty",
+        );
+        await page.waitForTimeout(900);
+        assert.equal((await exploreState(page)).status, "dirty");
+        assert.equal(await page.locator(".explore-marker").count(), 0);
+        assert.equal(
+          apiRequests.filter((request) => request.pathname === "/api/explore")
+            .length,
+          1,
+        );
+        evidence.push({
+          scenario: "in-flight",
+          statusAfterResponse: (await exploreState(page)).status,
+          exploreRequests: apiRequests.filter(
+            (request) => request.pathname === "/api/explore",
+          ),
+        });
+        assert.deepEqual(pageErrors, []);
+        await context.close();
+      }
+
+      await fs.writeFile(
+        path.join(outputDir, "explore-keyboard.json"),
+        `${JSON.stringify(evidence, null, 2)}\n`,
+      );
+    },
+  },
+  {
+    name: "explore cache expires after thirty seconds",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        {},
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+      apiRequests.length = 0;
+
+      await page.locator("#world-view-button").click();
+      await zoomWorldMapWithWheel(page, 4);
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.source ===
+          "cache",
+      );
+      assert.equal(
+        apiRequests.filter((request) => request.pathname === "/api/explore")
+          .length,
+        1,
+      );
+
+      await page.evaluate(() => {
+        window.__realDateNow = Date.now;
+        const base = Date.now();
+        Date.now = () => base + 31000;
+      });
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.source ===
+          "network",
+      );
+      assert.equal(
+        apiRequests.filter((request) => request.pathname === "/api/explore")
+          .length,
+        2,
+      );
+      assert.deepEqual(
+        await page
+          .locator(".explore-marker")
+          .evaluateAll((markers) =>
+            markers.map((marker) => marker.dataset.exploreId),
+          ),
+        ["explore-2-1", "explore-2-2", "explore-2-3"],
+      );
+      await fs.writeFile(
+        path.join(outputDir, "explore-cache.json"),
+        `${JSON.stringify(
+          {
+            ttlSeconds: 30,
+            requestsBeforeExpiry: 1,
+            requestsAfterExpiry: 2,
+            finalState: await exploreState(page),
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      await page.evaluate(() => {
+        Date.now = window.__realDateNow;
+        delete window.__realDateNow;
+      });
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "explore empty and truncated states stay separate from lunch data",
+    async run(browser) {
+      const scenarios = [
+        {
+          mode: "empty",
+          status: "empty",
+          returned: 0,
+          total: 0,
+          markers: 0,
+          text: "当前区域没有公开地点",
+        },
+        {
+          mode: "truncated",
+          status: "truncated",
+          returned: 2,
+          total: 7,
+          markers: 2,
+          text: "显示前 2 个，共 7 个",
+        },
+      ];
+
+      for (const scenario of scenarios) {
+        const { context, page, pageErrors } = await openPage(
+          browser,
+          { width: 1280, height: 900 },
+          { exploreMode: scenario.mode },
+        );
+        await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+        await waitForCityReady(page);
+        await waitForMarkers(page);
+        await waitForCityMarkers(page);
+        const selectedCity = await page.locator("#city-select").inputValue();
+        const placesText = await page.locator("#places-list").textContent();
+
+        await page.locator("#world-view-button").click();
+        await zoomWorldMapWithWheel(page, 4);
+        await page.locator("#explore-button").click();
+        await page.waitForFunction(
+          (expectedStatus) =>
+            document.querySelector("#explore-toolbar")?.dataset.status ===
+            expectedStatus,
+          scenario.status,
+        );
+        const current = await exploreState(page);
+        assert.equal(current.total, scenario.total);
+        assert.equal(current.returned, scenario.returned);
+        assert.equal(current.truncated, scenario.status === "truncated");
+        assert.equal(await page.locator(".explore-marker").count(), scenario.markers);
+        assert.match(
+          await page.locator("#explore-status").textContent(),
+          new RegExp(scenario.text),
+        );
+        assert.equal(await page.locator("#city-select").inputValue(), selectedCity);
+        assert.equal(await page.locator("#places-list").textContent(), placesText);
+        assert.deepEqual(pageErrors, []);
+        await context.close();
+      }
+    },
+  },
+  {
+    name: "explore rejects oversized regions without a request",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        {},
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+      apiRequests.length = 0;
+
+      await page.locator("#world-view-button").click();
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "too_large",
+      );
+      assert.match(
+        await page.locator("#explore-status").textContent(),
+        /区域过大，请放大地图后重试/,
+      );
+      assert.equal(
+        apiRequests.filter((request) => request.pathname === "/api/explore")
+          .length,
+        0,
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 0);
+      await page.screenshot({
+        path: path.join(outputDir, "explore-too-large.png"),
+        fullPage: true,
+      });
+
+      await zoomWorldMapWithWheel(page, 4);
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "dirty",
+      );
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 3);
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "explore rate limit shows retry countdown",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { exploreModes: ["rate_limited", "success"] },
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+      apiRequests.length = 0;
+
+      await page.locator("#world-view-button").click();
+      await zoomWorldMapWithWheel(page, 4);
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "rate_limited",
+      );
+      const limited = await exploreState(page);
+      assert.ok(limited.retryAfterSeconds > 0);
+      assert.match(
+        await page.locator("#explore-status").textContent(),
+        /请求过于频繁，请在 \d+ 秒后重试/,
+      );
+      assert.equal(await page.locator("#explore-retry-button").isVisible(), true);
+      assert.equal(await page.locator("#explore-retry-button").isDisabled(), true);
+      assert.equal(await page.locator(".explore-marker").count(), 0);
+
+      await page.waitForFunction(
+        () =>
+          Number(
+            document.querySelector("#explore-toolbar")?.dataset
+              .retryAfterSeconds,
+          ) === 0,
+        null,
+        { timeout: 5000 },
+      );
+      assert.equal(
+        await page.locator("#explore-retry-button").isDisabled(),
+        false,
+      );
+      await page.locator("#explore-retry-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 3);
+      assert.equal(
+        apiRequests.filter((request) => request.pathname === "/api/explore")
+          .length,
+        2,
+      );
+      await fs.writeFile(
+        path.join(outputDir, "explore-rate-limit.json"),
+        `${JSON.stringify(
+          {
+            limitedState: limited,
+            finalState: await exploreState(page),
+            exploreRequests: apiRequests.filter(
+              (request) => request.pathname === "/api/explore",
+            ),
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "explore timeout and error states can retry",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { exploreModes: ["server_timeout", "error", "success"] },
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+
+      await page.locator("#world-view-button").click();
+      await zoomWorldMapWithWheel(page, 4);
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "timeout",
+      );
+      const timeoutState = await exploreState(page);
+      assert.equal(await page.locator("#explore-retry-button").isVisible(), true);
+      await page.locator("#explore-retry-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "error",
+      );
+      const errorState = await exploreState(page);
+      await page.locator("#explore-retry-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      assert.equal(
+        apiRequests.filter((request) => request.pathname === "/api/explore")
+          .length,
+        3,
+      );
+      await fs.writeFile(
+        path.join(outputDir, "explore-timeout-error.json"),
+        `${JSON.stringify(
+          {
+            timeoutState,
+            errorState,
+            finalState: await exploreState(page),
+            exploreRequests: apiRequests.filter(
+              (request) => request.pathname === "/api/explore",
+            ),
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "explore client timeout aborts and can retry",
+    async run(browser) {
+      const { context, page, pageErrors } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { exploreModes: ["network_timeout", "success"] },
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+
+      await page.locator("#world-view-button").click();
+      await zoomWorldMapWithWheel(page, 4);
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "timeout",
+        null,
+        { timeout: 8000 },
+      );
+      const timeoutState = await exploreState(page);
+      assert.equal(await page.locator("#explore-retry-button").isVisible(), true);
+      await page.locator("#explore-retry-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 3);
+      await fs.writeFile(
+        path.join(outputDir, "explore-client-timeout.json"),
+        `${JSON.stringify(
+          {
+            timeoutState,
+            finalState: await exploreState(page),
+            clientTimeoutMs: 5000,
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "explore keeps the latest request and clears on city exit",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { exploreDelayByCall: [700, 100] },
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+      const selectedCity = await page.locator("#city-select").inputValue();
+      const placesText = await page.locator("#places-list").textContent();
+      apiRequests.length = 0;
+
+      await page.locator("#world-view-button").click();
+      await zoomWorldMapWithWheel(page, 4);
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "loading",
+      );
+      await dragMapWithMouse(page, 60, 30);
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      assert.deepEqual(
+        await page
+          .locator(".explore-marker")
+          .evaluateAll((markers) =>
+            markers.map((marker) => marker.dataset.exploreId),
+          ),
+        ["explore-2-1", "explore-2-2", "explore-2-3"],
+      );
+      assert.equal(await page.locator("#city-select").inputValue(), selectedCity);
+      assert.equal(await page.locator("#places-list").textContent(), placesText);
+      assert.equal(
+        apiRequests.filter((request) => request.pathname === "/api/explore")
+          .length,
+        2,
+      );
+
+      await page.locator("#return-city-button").click();
+      await page.waitForFunction(
+        () => document.querySelector("#explore-toolbar")?.hidden === true,
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 0);
+
+      await page.locator("#world-view-button").click();
+      await zoomWorldMapWithWheel(page, 4);
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      await page.selectOption("#city-select", "shanghai");
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.hidden === true &&
+          document.querySelector("#city-select")?.value === "shanghai",
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 0);
+      await fs.writeFile(
+        path.join(outputDir, "explore-last-write.json"),
+        `${JSON.stringify(
+          {
+            selectedCityBefore: selectedCity,
+            latestMarkerIds: [
+              "explore-2-1",
+              "explore-2-2",
+              "explore-2-3",
+            ],
+            exploreRequests: apiRequests.filter(
+              (request) => request.pathname === "/api/explore",
+            ),
+            cityAfterSwitch: "shanghai",
+            layerCleared: true,
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "mobile exploration supports touch drag, zoom, clear, and return",
+    async run(browser) {
+      const { context, page, pageErrors } = await openPage(
+        browser,
+        { width: 390, height: 844 },
+        {},
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+
+      await page.locator("#world-view-button").tap();
+      await page.waitForFunction(
+        () => !document.querySelector("#explore-toolbar")?.hidden,
+      );
+      await zoomWorldMapWithTouch(context, page, 4);
+      await dragMapWithTouch(context, page, 45, 20);
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "dirty",
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 0);
+      await assertNoOverflow(page);
+
+      await page.locator("#explore-button").tap();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 3);
+      await assertNoOverflow(page);
+      await page.screenshot({
+        path: path.join(outputDir, "mobile-explore.png"),
+        fullPage: true,
+      });
+
+      await page.locator("#explore-clear-button").tap();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "idle",
+      );
+      assert.equal(await page.locator(".explore-marker").count(), 0);
+      await page.locator("#return-city-button").tap();
+      assert.equal(await page.locator("#explore-toolbar").isVisible(), false);
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "exploration controls fit the 320px mobile viewport",
+    async run(browser) {
+      const { context, page, pageErrors } = await openPage(
+        browser,
+        { width: 320, height: 568 },
+        {},
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+
+      await page.locator("#world-view-button").tap();
+      await page.waitForFunction(
+        () => !document.querySelector("#explore-toolbar")?.hidden,
+      );
+      await assertNoOverflow(page);
+      await zoomWorldMapWithControls(page, 4);
+      await page.locator("#explore-button").tap();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      await assertNoOverflow(page);
+      assert.equal(await page.locator(".explore-marker").count(), 3);
+      await page.locator("#explore-clear-button").tap();
+      await page.locator("#return-city-button").tap();
+      await assertNoOverflow(page);
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
     name: "places failure clears stale marker and popup",
     async run(browser) {
       const { context, page, pageErrors } = await openPage(
@@ -1678,6 +3168,71 @@ const tests = [
       assert.equal(await page.locator("#spin-button").isEnabled(), true);
       assert.deepEqual(pageErrors, []);
       await context.close();
+    },
+  },
+  {
+    name: "food image failures keep the selected result and map binding",
+    async run(browser) {
+      const viewports = [
+        { width: 1280, height: 900, suffix: "desktop" },
+        { width: 390, height: 844, suffix: "mobile" },
+      ];
+
+      for (const viewport of viewports) {
+        const { context, page, pageErrors } = await openPage(
+          browser,
+          { width: viewport.width, height: viewport.height },
+          { failFoodImages: true },
+        );
+        await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+        await waitForCityReady(page);
+        await waitForMarkers(page);
+
+        await page.locator("#spin-button").click();
+        await page.waitForFunction(
+          () => document.querySelector("#result-name")?.textContent === "北京烤鸭",
+        );
+        await page.waitForSelector("#result-image-fallback:not([hidden])");
+        await page.waitForSelector(".popup-food-fallback:not([hidden])");
+
+        assert.equal(await page.locator("#result-media").isVisible(), true);
+        assert.equal(await page.locator("#result-image").isVisible(), false);
+        assert.equal(
+          (await page.locator("#result-image-fallback").textContent()).trim(),
+          "美食图片暂不可用",
+        );
+        assert.match(
+          await page.locator("#result-image-credit").textContent(),
+          /Wikimedia Commons/,
+        );
+        assert.equal(
+          await page.locator("#result-card").getAttribute("data-place-id"),
+          "beijing-1",
+        );
+        assert.equal(
+          await page.locator(".popup-food").evaluate((media) =>
+            media.closest("[data-place-id]")?.dataset.placeId,
+          ),
+          "beijing-1",
+        );
+        assert.equal(await page.locator(".popup-food-image").isVisible(), false);
+        assert.equal(
+          (await page.locator(".popup-food-fallback").textContent()).trim(),
+          "美食图片暂不可用",
+        );
+        assert.equal(await page.locator(".popup-name").textContent(), "北京烤鸭");
+        await assertNoOverflow(page);
+
+        await page.screenshot({
+          path: path.join(
+            outputDir,
+            `food-image-failure-${viewport.suffix}.png`,
+          ),
+          fullPage: true,
+        });
+        assert.deepEqual(pageErrors, []);
+        await context.close();
+      }
     },
   },
   {
@@ -1800,7 +3355,26 @@ async function main() {
   console.log(`Browser checks passed: ${report.length}/${tests.length}`);
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = {
+  assertNoOverflow,
+  baseUrl,
+  dragMapWithMouse,
+  exploreState,
+  installApiRoutes,
+  mapState,
+  openPage,
+  outputDir,
+  regionFixtures,
+  startServer,
+  waitForCityReady,
+  waitForHttp,
+  zoomWorldMapWithControls,
+  zoomWorldMapWithWheel,
+};

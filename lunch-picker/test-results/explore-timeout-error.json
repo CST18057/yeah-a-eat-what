@@ -1,0 +1,82 @@
+{
+  "timeoutState": {
+    "hidden": false,
+    "status": "timeout",
+    "requestId": "4",
+    "source": "",
+    "limit": 40,
+    "total": 0,
+    "returned": 0,
+    "truncated": false,
+    "errorCode": "EXPLORE_TIMEOUT",
+    "retryAfterSeconds": null,
+    "bounds": {
+      "west": -12.88,
+      "south": -11.92,
+      "east": 12.88,
+      "north": 13.76
+    },
+    "cacheKey": "explore:v1:-12.88:-11.92:12.88:13.76:40",
+    "updatedAt": 1794131629044
+  },
+  "errorState": {
+    "hidden": false,
+    "status": "error",
+    "requestId": "5",
+    "source": "",
+    "limit": 40,
+    "total": 0,
+    "returned": 0,
+    "truncated": false,
+    "errorCode": "INTERNAL_ERROR",
+    "retryAfterSeconds": null,
+    "bounds": {
+      "west": -12.88,
+      "south": -11.92,
+      "east": 12.88,
+      "north": 13.76
+    },
+    "cacheKey": "explore:v1:-12.88:-11.92:12.88:13.76:40",
+    "updatedAt": 1794131629111
+  },
+  "finalState": {
+    "hidden": false,
+    "status": "ready",
+    "requestId": "6",
+    "source": "network",
+    "limit": 40,
+    "total": 3,
+    "returned": 3,
+    "truncated": false,
+    "errorCode": "",
+    "retryAfterSeconds": null,
+    "bounds": {
+      "west": -12.88,
+      "south": -11.92,
+      "east": 12.88,
+      "north": 13.76
+    },
+    "cacheKey": "explore:v1:-12.88:-11.92:12.88:13.76:40",
+    "updatedAt": 1794131629178
+  },
+  "exploreRequests": [
+    {
+      "method": "GET",
+      "pathname": "/api/explore",
+      "url": "http://127.0.0.1:4174/api/explore?west=-12.88&south=-11.92&east=12.88&north=13.76&limit=40",
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/explore",
+      "url": "http://127.0.0.1:4174/api/explore?west=-12.88&south=-11.92&east=12.88&north=13.76&limit=40",
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/explore",
+      "url": "http://127.0.0.1:4174/api/explore?west=-12.88&south=-11.92&east=12.88&north=13.76&limit=40",
+      "body": ""
+    }
+  ]
+}

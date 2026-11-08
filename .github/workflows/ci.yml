@@ -28,7 +28,10 @@ jobs:
           cache: npm
           cache-dependency-path: lunch-picker/package-lock.json
 
-      - name: Install dependencies
+      - name: Verify production dependency install
+        run: npm ci --omit=dev
+
+      - name: Install test dependencies
         run: npm ci
 
       - name: Install browser runtime
@@ -39,6 +42,9 @@ jobs:
 
       - name: Run browser tests
         run: npm run test:browser
+
+      - name: Run cross-feature browser tests
+        run: npm run test:cross-feature
 
       - name: Check whitespace
         working-directory: .

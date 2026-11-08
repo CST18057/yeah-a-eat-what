@@ -1,0 +1,13 @@
+{
+  "viewport": {
+    "width": 320,
+    "height": 568
+  },
+  "exploreRequests": 1,
+  "placeRequests": [
+    "/api/regions/tokyo/places"
+  ],
+  "finalCity": "tokyo",
+  "finalResult": "築地場外市場",
+  "horizontalOverflow": false
+}

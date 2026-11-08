@@ -1,0 +1,43 @@
+{
+  "timeoutState": {
+    "hidden": false,
+    "status": "timeout",
+    "requestId": "4",
+    "source": "",
+    "limit": 40,
+    "total": 0,
+    "returned": 0,
+    "truncated": false,
+    "errorCode": "CLIENT_TIMEOUT",
+    "retryAfterSeconds": null,
+    "bounds": {
+      "west": -12.88,
+      "south": -11.92,
+      "east": 12.88,
+      "north": 13.76
+    },
+    "cacheKey": "explore:v1:-12.88:-11.92:12.88:13.76:40",
+    "updatedAt": 1794131634612
+  },
+  "finalState": {
+    "hidden": false,
+    "status": "ready",
+    "requestId": "5",
+    "source": "network",
+    "limit": 40,
+    "total": 3,
+    "returned": 3,
+    "truncated": false,
+    "errorCode": "",
+    "retryAfterSeconds": null,
+    "bounds": {
+      "west": -12.88,
+      "south": -11.92,
+      "east": 12.88,
+      "north": 13.76
+    },
+    "cacheKey": "explore:v1:-12.88:-11.92:12.88:13.76:40",
+    "updatedAt": 1794131634675
+  },
+  "clientTimeoutMs": 5000
+}

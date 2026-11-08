@@ -1,0 +1,30 @@
+{
+  "selectedCityBefore": "beijing",
+  "latestMarkerIds": [
+    "explore-2-1",
+    "explore-2-2",
+    "explore-2-3"
+  ],
+  "exploreRequests": [
+    {
+      "method": "GET",
+      "pathname": "/api/explore",
+      "url": "http://127.0.0.1:4174/api/explore?west=-12.88&south=-11.92&east=12.88&north=13.76&limit=40",
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/explore",
+      "url": "http://127.0.0.1:4174/api/explore?west=-15.52&south=-10.62&east=10.24&north=15.03&limit=40",
+      "body": ""
+    },
+    {
+      "method": "GET",
+      "pathname": "/api/explore",
+      "url": "http://127.0.0.1:4174/api/explore?west=-12.88&south=-11.92&east=12.88&north=13.76&limit=40",
+      "body": ""
+    }
+  ],
+  "cityAfterSwitch": "shanghai",
+  "layerCleared": true
+}

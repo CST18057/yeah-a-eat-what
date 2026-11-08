@@ -1,0 +1,26 @@
+{
+  "finalCenter": {
+    "lat": 0.94478,
+    "lng": 94.92188
+  },
+  "state": {
+    "status": "ready",
+    "source": "network",
+    "total": 4,
+    "returned": 4,
+    "bounds": {
+      "west": 82.04,
+      "south": -11.92,
+      "east": 107.8,
+      "north": 13.76
+    },
+    "errorCode": ""
+  },
+  "markers": 4,
+  "responses": [
+    {
+      "url": "http://127.0.0.1:4322/api/explore?west=82.04&south=-11.92&east=107.80&north=13.76&limit=40",
+      "status": 200
+    }
+  ]
+}
