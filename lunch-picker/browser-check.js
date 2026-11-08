@@ -2843,6 +2843,158 @@ const tests = [
       }
     },
   },
+  {
+    name: "keyboard pan invalidates ready and in-flight exploration",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { exploreDelay: 1200 },
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await waitForMarkers(page);
+      await waitForCityMarkers(page);
+
+      await page.locator("#world-view-button").click();
+      await page.waitForFunction(
+        () => !document.querySelector("#explore-toolbar")?.hidden,
+      );
+      await page.waitForTimeout(250);
+
+      const programmaticWorldViewState = await exploreState(page);
+      assert.equal(
+        programmaticWorldViewState.status,
+        "idle",
+        "Programmatic world-view fitBounds must not invalidate exploration",
+      );
+
+      await zoomWorldMapWithControls(page, 5);
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () => {
+          const status =
+            document.querySelector("#explore-toolbar")?.dataset.status;
+          return status && status !== "idle" && status !== "loading";
+        },
+      );
+      const initialExplore = await exploreState(page);
+      assert.equal(
+        initialExplore.status,
+        "ready",
+        `Initial exploration did not reach ready: ${JSON.stringify(
+          initialExplore,
+        )}`,
+      );
+
+      const readyBefore = {
+        map: await mapState(page),
+        explore: await exploreState(page),
+        markerCount: await page.locator(".explore-marker").count(),
+      };
+      await page.locator("#map").focus();
+      await page.keyboard.press("ArrowRight");
+      await page.waitForFunction(
+        (before) => {
+          const map = document.querySelector("#map");
+          return Number(map.dataset.centerLng) !== before;
+        },
+        readyBefore.map.lng,
+      );
+      await page.waitForTimeout(250);
+      const readyAfter = {
+        map: await mapState(page),
+        explore: await exploreState(page),
+        markerCount: await page.locator(".explore-marker").count(),
+      };
+      await page.screenshot({
+        path: path.join(outputDir, "keyboard-explore-ready-stale.png"),
+        fullPage: true,
+      });
+
+      await page.locator("#explore-clear-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "idle",
+      );
+      apiRequests.length = 0;
+
+      const inflightBeforeMap = await mapState(page);
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "loading",
+      );
+      await page.locator("#map").focus();
+      await page.keyboard.press("ArrowRight");
+      await page.waitForFunction(
+        (before) => {
+          const map = document.querySelector("#map");
+          return Number(map.dataset.centerLng) !== before;
+        },
+        inflightBeforeMap.lng,
+      );
+      await page.waitForTimeout(1500);
+      const inflightAfter = {
+        map: await mapState(page),
+        explore: await exploreState(page),
+        markerCount: await page.locator(".explore-marker").count(),
+        exploreRequests: apiRequests.filter(
+          (request) => request.pathname === "/api/explore",
+        ),
+      };
+      await page.screenshot({
+        path: path.join(outputDir, "keyboard-explore-inflight-stale.png"),
+        fullPage: true,
+      });
+
+      await fs.writeFile(
+        path.join(outputDir, "keyboard-explore-regression.json"),
+        `${JSON.stringify(
+          {
+            head: process.env.GITHUB_HEAD_SHA || "e167a4e",
+            programmaticWorldViewState,
+            readyScenario: {
+              before: readyBefore,
+              after: readyAfter,
+            },
+            inflightScenario: {
+              beforeMap: inflightBeforeMap,
+              after: inflightAfter,
+            },
+            pageErrors,
+          },
+          null,
+          2,
+        )}\n`,
+      );
+
+      assert.notEqual(
+        readyAfter.explore.status,
+        "ready",
+        "Keyboard pan left a ready exploration result attached to stale bounds",
+      );
+      assert.equal(
+        readyAfter.markerCount,
+        0,
+        "Keyboard pan left stale explore markers visible",
+      );
+      assert.notEqual(
+        inflightAfter.explore.status,
+        "ready",
+        "Keyboard pan allowed an in-flight response to publish stale bounds",
+      );
+      assert.equal(
+        inflightAfter.markerCount,
+        0,
+        "Keyboard pan allowed an in-flight response to render stale markers",
+      );
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
 ];
 
 async function main() {
@@ -2850,12 +3002,15 @@ async function main() {
   const server = startServer();
   let browser;
   const report = [];
+  const selectedTests = process.env.TEST_NAME_FILTER
+    ? tests.filter((test) => test.name.includes(process.env.TEST_NAME_FILTER))
+    : tests;
 
   try {
     await waitForHttp(`${baseUrl}/api/regions`);
     browser = await chromium.launch({ headless: true });
 
-    for (const test of tests) {
+    for (const test of selectedTests) {
       const started = Date.now();
       try {
         await test.run(browser);
@@ -2896,7 +3051,7 @@ async function main() {
     );
   }
 
-  console.log(`Browser checks passed: ${report.length}/${tests.length}`);
+  console.log(`Browser checks passed: ${report.length}/${selectedTests.length}`);
 }
 
 main().catch((error) => {
