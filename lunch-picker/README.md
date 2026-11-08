@@ -31,6 +31,11 @@ normalization, candidate preview/confirm/cancel, request ordering, places
 failure cleanup, explicit region exploration, cache/error states,
 pending-spin invalidation, and tile-failure fallbacks.
 
+`npm run test:cross-feature` reuses the browser fixtures and focuses on
+cross-feature state boundaries: exploration versus lunch state, candidate
+preview cancellation of in-flight exploration, confirmation after exploration,
+food-image fallback isolation, and a complete 320px mobile path.
+
 Browser downloads are explicit so production installs do not execute a
 development-only postinstall step. On a minimal Linux host, install the
 browser's system libraries once with:

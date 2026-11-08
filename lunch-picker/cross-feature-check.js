@@ -11,6 +11,7 @@ const {
   assertNoOverflow,
   baseUrl,
   exploreState,
+  mapState,
   openPage,
   outputDir,
   startServer,
@@ -19,6 +20,9 @@ const {
   zoomWorldMapWithControls,
   zoomWorldMapWithWheel,
 } = require("./browser-check");
+const evidenceSuffix = process.env.EVIDENCE_SUFFIX
+  ? `-${process.env.EVIDENCE_SUFFIX.replace(/[^a-z0-9-]/gi, "")}`
+  : "";
 
 async function lunchState(page) {
   return {
@@ -48,9 +52,20 @@ async function spinBeijing(page) {
   });
 }
 
+async function fillCitySearch(page, value) {
+  const input = page.locator("#city-search");
+  await input.focus();
+  await input.fill(value);
+  if ((await input.inputValue()) !== value) {
+    await input.evaluate((element, nextValue) => {
+      element.value = nextValue;
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+    }, value);
+  }
+}
+
 async function openTokyoCandidate(page) {
-  await page.locator("#city-search").focus();
-  await page.locator("#city-search").fill("tok");
+  await fillCitySearch(page, "tok");
   await page.waitForFunction(
     () =>
       document.querySelector(".search-result-button")?.dataset.cityId ===
@@ -439,7 +454,7 @@ const tests = [
       await assertNoOverflow(page);
 
       await page.locator("#city-search").tap();
-      await page.locator("#city-search").fill("tok");
+      await fillCitySearch(page, "tok");
       await page.locator('.search-result-button[data-city-id="tokyo"]').tap();
       await page.waitForFunction(
         () => !document.querySelector("#candidate-preview")?.hidden,
@@ -501,10 +516,139 @@ const tests = [
       await context.close();
     },
   },
+  {
+    name: "keyboard panning invalidates a ready exploration result",
+    async run(browser) {
+      const { context, page, pageErrors } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        {},
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await page.locator("#world-view-button").click();
+      await page.waitForFunction(
+        () => !document.querySelector("#explore-toolbar")?.hidden,
+      );
+      await page.waitForTimeout(250);
+      assert.equal((await exploreState(page)).status, "idle");
+
+      await zoomWorldMapWithControls(page, 5);
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "ready",
+      );
+      const before = {
+        map: await mapState(page),
+        explore: await exploreState(page),
+        markerCount: await page.locator(".explore-marker").count(),
+      };
+
+      await page.locator("#map").focus();
+      await page.keyboard.press("ArrowRight");
+      await page.waitForFunction(
+        (previousLng) =>
+          Number(document.querySelector("#map").dataset.centerLng) !==
+          previousLng,
+        before.map.lng,
+      );
+      await page.waitForTimeout(250);
+      const after = {
+        map: await mapState(page),
+        explore: await exploreState(page),
+        markerCount: await page.locator(".explore-marker").count(),
+      };
+      await fs.writeFile(
+        path.join(
+          outputDir,
+          `cross-feature-keyboard-ready${evidenceSuffix}.json`,
+        ),
+        `${JSON.stringify({ before, after, pageErrors }, null, 2)}\n`,
+      );
+
+      assert.equal(after.explore.status, "dirty");
+      assert.equal(after.markerCount, 0);
+      assert.notEqual(after.map.lng, before.map.lng);
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "keyboard panning invalidates an in-flight exploration request",
+    async run(browser) {
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { exploreDelay: 1200 },
+      );
+      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await waitForCityReady(page);
+      await page.locator("#world-view-button").click();
+      await zoomWorldMapWithControls(page, 5);
+      apiRequests.length = 0;
+
+      await page.locator("#explore-button").click();
+      await page.waitForFunction(
+        () =>
+          document.querySelector("#explore-toolbar")?.dataset.status ===
+          "loading",
+      );
+      const beforeMap = await mapState(page);
+      await page.locator("#map").focus();
+      await page.keyboard.press("ArrowRight");
+      await page.waitForFunction(
+        (previousLng) =>
+          Number(document.querySelector("#map").dataset.centerLng) !==
+          previousLng,
+        beforeMap.lng,
+      );
+      await page.waitForTimeout(1500);
+      const after = {
+        map: await mapState(page),
+        explore: await exploreState(page),
+        markerCount: await page.locator(".explore-marker").count(),
+        exploreRequests: apiRequests.filter(
+          (request) => request.pathname === "/api/explore",
+        ),
+      };
+      await fs.writeFile(
+        path.join(
+          outputDir,
+          `cross-feature-keyboard-inflight${evidenceSuffix}.json`,
+        ),
+        `${JSON.stringify({ beforeMap, after, pageErrors }, null, 2)}\n`,
+      );
+
+      assert.equal(after.explore.status, "dirty");
+      assert.equal(after.markerCount, 0);
+      assert.equal(after.exploreRequests.length, 1);
+      assert.notEqual(after.map.lng, beforeMap.lng);
+      assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
 ];
+
+function selectTests(filter, availableTests = tests) {
+  if (!filter) {
+    return availableTests;
+  }
+  return availableTests.filter((test) => test.name.includes(filter));
+}
 
 async function main() {
   await fs.mkdir(outputDir, { recursive: true });
+  const selectedTests = selectTests(process.env.TEST_NAME_FILTER);
+  if (selectedTests.length === 0) {
+    console.error(
+      `No cross-feature tests matched TEST_NAME_FILTER="${process.env.TEST_NAME_FILTER}"`,
+    );
+    process.exitCode = 2;
+    return;
+  }
+
   const server = startServer();
   let browser;
   const report = [];
@@ -513,7 +657,7 @@ async function main() {
     await waitForHttp(`${baseUrl}/api/regions`);
     browser = await chromium.launch({ headless: true });
 
-    for (const test of tests) {
+    for (const test of selectedTests) {
       const started = Date.now();
       try {
         await test.run(browser);
@@ -555,8 +699,10 @@ async function main() {
   }
 
   const passed = report.filter((item) => item.status === "passed").length;
-  console.log(`Cross-feature checks passed: ${passed}/${tests.length}`);
-  if (passed !== tests.length) {
+  console.log(
+    `Cross-feature checks passed: ${passed}/${selectedTests.length}`,
+  );
+  if (passed !== selectedTests.length) {
     process.exitCode = 1;
   }
 }

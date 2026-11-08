@@ -43,7 +43,7 @@ git diff --check
 - `npm ci --omit=dev`: passed without invoking Playwright.
 - `npm test`: 24/24 passed.
 - `npm run test:browser`: 31/31 passed.
-- `npm run test:cross-feature`: 5/5 passed.
+- `npm run test:cross-feature`: 7/7 passed.
 - `git diff --check`: passed.
 
 Browser scenarios:
@@ -91,6 +91,10 @@ Cross-feature fixture scenarios:
 4. Food-image fallback remains isolated while exploration loads and clears.
 5. A 320px mobile run completes spin, explore, candidate confirmation, and a
    second spin without horizontal overflow.
+6. Keyboard panning invalidates a ready exploration result and removes stale
+   markers.
+7. Keyboard panning during an in-flight explore request keeps the state dirty
+   and prevents the late response from rendering.
 
 ## Evidence
 
