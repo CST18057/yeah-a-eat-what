@@ -322,6 +322,11 @@ test("spin selection is deterministic for an injected random source", () => {
   assert.equal(spinRegion("beijing", () => 0.999).place.id, "beijing-niujie");
   assert.equal(spinRegion("tokyo", () => 0).place.id, "tokyo-tsukiji-outer-market");
   assert.equal(spinRegion("new-york", () => 0.999).place.id, "new-york-brooklyn-borough-hall-greenmarket");
+  const xianHigh = spinRegion("xian", () => 0.999);
+  assert.equal(xianHigh.place.id, "xian-sajinqiao");
+  assert.equal(xianHigh.place.food.foodId, "xian-yangrou-paomo");
+  assert.equal(xianHigh.place.food.dish, "羊肉泡馍");
+  assert.equal(xianHigh.place.food.image, "/food/xian-yangrou-paomo.jpg");
   assert.equal(spinRegion("missing"), null);
 });
 
