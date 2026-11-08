@@ -287,15 +287,25 @@ async function installApiRoutes(page, options = {}) {
     }
 
     const places = explorePlacesForBounds(bounds, 3, exploreCallCount);
-    await routeJson(route, 200, {
-      version: "0.5.0",
-      bounds,
-      limit,
-      total: places.length,
-      returned: places.length,
-      truncated: false,
-      places,
-    });
+    try {
+      await routeJson(route, 200, {
+        version: "0.5.0",
+        bounds,
+        limit,
+        total: places.length,
+        returned: places.length,
+        truncated: false,
+        places,
+      });
+    } catch (error) {
+      if (
+        !/Route is already handled|Target page, context or browser has been closed/.test(
+          error.message,
+        )
+      ) {
+        throw error;
+      }
+    }
   });
 
   if (options.failTiles) {
@@ -2899,7 +2909,26 @@ async function main() {
   console.log(`Browser checks passed: ${report.length}/${tests.length}`);
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = {
+  assertNoOverflow,
+  baseUrl,
+  dragMapWithMouse,
+  exploreState,
+  installApiRoutes,
+  mapState,
+  openPage,
+  outputDir,
+  regionFixtures,
+  startServer,
+  waitForCityReady,
+  waitForHttp,
+  zoomWorldMapWithControls,
+  zoomWorldMapWithWheel,
+};
