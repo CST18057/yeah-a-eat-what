@@ -68,9 +68,10 @@ The JSON report contains:
 - every command, exit status, duration, and bounded failure output;
 - browser/test artifact sizes and SHA-256 hashes;
 - known blockers, failure summaries, and a release verdict;
-- a `resultFingerprint` that excludes timestamps, durations, and artifact content
-  hashes so repeated run verdicts and artifact sets can be compared for
-  consistency. Artifact content hashes remain in the report for audit.
+- a `resultFingerprint` that excludes timestamps, durations, artifact sizes, and
+  artifact content hashes so repeated run verdicts and artifact path sets can be
+  compared for consistency. Artifact sizes and content hashes remain in the
+  report for audit.
 
 The tool verifies only the automated gates listed above. Authorization,
 attribution, supplier terms, and other release decisions must be supplied as

@@ -280,7 +280,6 @@ function buildFingerprint(report) {
     })),
     artifacts: report.artifacts.map((artifact) => ({
       path: artifact.path,
-      bytes: artifact.bytes,
     })),
     releaseReady: report.releaseReady,
   };
