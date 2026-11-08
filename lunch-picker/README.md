@@ -1,8 +1,8 @@
 # Lunch Picker
 
 v0.5.0 的按区域探索版本，包含城市发现、抽签结果美食示例和显式区域探索。
-应用提供 9 个城市、43 个 OpenStreetMap 公开地点、Leaflet 世界地图、
-城市搜索与候选预览、区域探索、地点清单和随机午餐抽签。
+应用提供 9 个城市、43 个 OpenStreetMap 公开地点、27 个本地授权美食候选、
+Leaflet 世界地图、城市搜索与候选预览、区域探索、地点清单和随机午餐抽签。
 
 ## Run
 
@@ -18,6 +18,7 @@ The server listens on `http://127.0.0.1:4173` by default. Override `PORT` or
 
 ```bash
 npm test
+npm run audit:food-images
 npm run install:browser
 npm run test:browser
 npm run test:cross-feature
@@ -25,7 +26,9 @@ git diff --check
 ```
 
 `npm test` covers the nine-city catalog, API contract, static assets, invalid
-requests, repeated requests, and deterministic random selection. The browser
+requests, repeated requests, the 27-candidate provider schema, and deterministic
+random selection. `npm run audit:food-images` verifies the nine-region/three-
+candidate completeness gate and writes an exact SHA-256 image manifest. The browser
 suite covers desktop and mobile flows, cross-continent map browsing, city search
 normalization, candidate preview/confirm/cancel, request ordering, places
 failure cleanup, explicit region exploration, cache/error states,
@@ -87,10 +90,17 @@ Place data is © OpenStreetMap contributors and is available under the
 See [OpenStreetMap copyright](https://www.openstreetmap.org/copyright) for the
 required attribution terms. These notices are also visible in the application.
 
-The nine bundled food images are example photography, not photos of the
-selected public place or claims about a real merchant. Source and license
-details are recorded in `FOOD_IMAGES.md` and returned in each place's `food`
-metadata.
+The 27 bundled food candidates are example photography, not photos of the
+selected public place or claims about a real merchant. Each of the nine cities
+has three distinct dish names and local images. Source, author, license, and
+file hash details are recorded in `FOOD_IMAGES.md`. The provider/array contract
+is documented in `FOOD_DATA_SCHEMA.md`.
+
+The current places endpoint keeps a compatibility `food` object containing the
+first regional candidate. Server-side spin integration must build candidates
+from each place multiplied by `getFoodCandidatesForRegion(regionId)`; it must
+not use the compatibility accessor or select the same first dish for every
+place.
 
 ## Map Behavior
 

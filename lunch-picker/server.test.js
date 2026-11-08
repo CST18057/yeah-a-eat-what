@@ -8,6 +8,7 @@ const {
   getFoodCandidatesForRegion,
   getFoodForRegion,
   getFoodProvider,
+  validateFoodProviders,
 } = require("./catalog/food-images");
 const { validateRegions } = require("./catalog/validate");
 const { spinRegion } = require("./data");
@@ -108,6 +109,7 @@ test("food catalog uses normalized provider arrays", () => {
   assert.ok(provider);
   assert.equal(provider.name, "Wikimedia Commons");
 
+  const allFoods = [];
   const beijingFoods = getFoodCandidatesForRegion("beijing");
   assert.equal(beijingFoods.length, 3);
   assert.equal(new Set(beijingFoods.map((food) => food.foodId)).size, 3);
@@ -118,9 +120,13 @@ test("food catalog uses normalized provider arrays", () => {
 
   for (const city of cities) {
     const foods = getFoodCandidatesForRegion(city.id);
-    assert.ok(foods.length >= 1, `missing food candidates for ${city.id}`);
+    assert.equal(foods.length, 3, `${city.id} must have three food candidates`);
+    assert.equal(new Set(foods.map((food) => food.foodId)).size, 3);
+    assert.equal(new Set(foods.map((food) => food.dish)).size, 3);
+    assert.equal(new Set(foods.map((food) => food.image)).size, 3);
 
     for (const food of foods) {
+      allFoods.push(food);
       assert.match(food.foodId, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
       assert.equal(food.regionId, city.id);
       assert.equal(food.providerId, provider.id);
@@ -139,6 +145,49 @@ test("food catalog uses normalized provider arrays", () => {
       );
     }
   }
+
+  assert.equal(allFoods.length, 27);
+  assert.equal(new Set(allFoods.map((food) => food.foodId)).size, 27);
+  assert.equal(new Set(allFoods.map((food) => food.image)).size, 27);
+  assert.equal(
+    validateFoodProviders(
+      FOOD_PROVIDERS,
+      cities.map((city) => city.id),
+    ),
+    FOOD_PROVIDERS,
+  );
+});
+
+test("food catalog validation rejects duplicated or incomplete candidates", () => {
+  const provider = getFoodProvider("wikimedia-commons");
+  const beijingFoods = getFoodCandidatesForRegion("beijing");
+  const duplicateImage = [
+    {
+      ...provider,
+      regions: {
+        ...provider.regions,
+        beijing: [beijingFoods[0], beijingFoods[1], { ...beijingFoods[2], image: beijingFoods[1].image }],
+      },
+    },
+  ];
+  assert.throws(
+    () => validateFoodProviders(duplicateImage),
+    /image must be unique within a region/,
+  );
+
+  const incomplete = [
+    {
+      ...provider,
+      regions: {
+        ...provider.regions,
+        beijing: beijingFoods.slice(0, 2),
+      },
+    },
+  ];
+  assert.throws(
+    () => validateFoodProviders(incomplete),
+    /must contain at least three foods/,
+  );
 });
 
 test("every bundled food example has a licensed local image", async () => {

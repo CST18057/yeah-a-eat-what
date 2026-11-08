@@ -1,10 +1,15 @@
 "use strict";
 
 const cities = require("./catalog/cities");
-const { getFoodForRegion } = require("./catalog/food-images");
+const {
+  FOOD_PROVIDERS,
+  getFoodForRegion,
+  validateFoodProviders,
+} = require("./catalog/food-images");
 const { validateRegions } = require("./catalog/validate");
 
 const regions = validateRegions(cities);
+validateFoodProviders(FOOD_PROVIDERS, regions.map((region) => region.id));
 const regionById = new Map(regions.map((region) => [region.id, region]));
 
 function clone(value) {

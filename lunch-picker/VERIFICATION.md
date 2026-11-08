@@ -20,6 +20,10 @@ Date: 2026-11-08
   results without treating programmatic world-view changes as user movement.
 - Added visible OpenStreetMap contributor and ODbL attribution with license
   links, plus food-image source and Creative Commons license links.
+- Expanded the food catalog to a provider/array structure with 27 candidates:
+  three distinct dish names and local images for each of the nine cities.
+- Added a normalized candidate schema, fail-fast validation, source/author/
+  license metadata, global uniqueness checks, and an image hash audit.
 - Removed the development-only browser download from production `postinstall`;
   browser installation is now an explicit test step.
 - Preserved city search, candidate preview, lunch selection, places, map
@@ -31,6 +35,7 @@ Date: 2026-11-08
 npm ci
 npm ci --omit=dev
 npm test
+npm run audit:food-images
 npm run install:browser
 npm run test:browser
 npm run test:cross-feature
@@ -41,9 +46,10 @@ git diff --check
 
 - `npm ci`: passed with 0 vulnerabilities.
 - `npm ci --omit=dev`: passed without invoking Playwright.
-- `npm test`: 24/24 passed.
+- `npm test`: 26/26 passed.
 - `npm run test:browser`: 31/31 passed.
 - `npm run test:cross-feature`: 7/7 passed.
+- `npm run audit:food-images`: 9 regions, 27 unique candidates and images.
 - `git diff --check`: passed.
 
 Browser scenarios:
@@ -113,6 +119,10 @@ Exploration state/network evidence is stored in `explore-explicit.json`,
 `explore-cache.json`, `explore-rate-limit.json`, `explore-timeout-error.json`,
 `explore-client-timeout.json`, and `explore-last-write.json`.
 Keyboard invalidation evidence is stored in `explore-keyboard.json`.
+
+Food catalog evidence is stored in `food-catalog-audit.json`. It records all 27
+`foodId`, dish, local image, byte size, SHA-256, author, license, license URL,
+and source page values. `FOOD_IMAGES.md` is the human-readable equivalent.
 
 The state dataset on `#explore-toolbar` records status, request ID, source,
 limit, totals, truncation, error code, retry seconds, quantized bounds, cache

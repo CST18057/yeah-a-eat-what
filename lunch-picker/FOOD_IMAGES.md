@@ -2,21 +2,40 @@
 
 The images in `public/food/` are bundled examples for the lunch result card and
 map popup. They do not depict the selected public place and do not represent a
-real available merchant.
+real available merchant. Runtime pages load only these local files and never
+hotlink the source.
 
-| File | Dish | Author | License | Source |
-| --- | --- | --- | --- | --- |
-| `beijing-peking-duck.jpg` | 北京烤鸭 | Mcyjerry | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Peking_duck_with_sugar_scallion.jpg) |
-| `beijing-zhajiangmian.jpg` | 炸酱面 | N509FZ | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Noodles_with_diced_meat_soybean_paste_before_stirring_(20210102181759).jpg) |
-| `beijing-jianbing.jpg` | 煎饼 | Alwaleed Khaled | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Jianbing_on_plate.jpg) |
-| `shanghai-xiaolongbao.jpg` | 小笼包 | Junhao! | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Xiao_Long_Bao_by_Junhao!.jpg) |
-| `guangzhou-dim-sum.jpg` | 广式点心 | afterdog | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Dim_Sum_Breakfast.jpg) |
-| `chengdu-hotpot.jpg` | 四川火锅 | Fumikas Sagisavas | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Sichuan-style_hotpot.jpg) |
-| `xian-roujiamo.jpg` | 肉夹馍 | Suginami | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Roujiamo_and_Laoling_Laodoufu.jpg) |
-| `tokyo-sushi.jpg` | 寿司 | Mojmir Churavy | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Sushi_Plate_in_Organic_Sushi_Prague_4.jpg) |
-| `singapore-laksa.jpg` | 叻沙 | Andy Li | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Noo.Meat_Laksa_-_Noo.Me_2024-12-02.jpg) |
-| `berlin-currywurst.jpg` | 咖喱肠 | Jrcraft Yt | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Currywurst_2019.jpg) |
-| `new-york-bagel.jpg` | 贝果 | Funknendai | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Montreal_bagel_with_lox.jpg) |
+| Region | File | Dish | Author | License | SHA-256 | Source |
+| --- | --- | --- | --- | --- | --- | --- |
+| beijing | `beijing-peking-duck.jpg` | 北京烤鸭 | Mcyjerry | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | `b1cf2556d5fda3c29c2d7b49879e801da71b5eb1ce0e545e6a8c8a5ec7931ede` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Peking_duck_with_sugar_scallion.jpg) |
+| beijing | `beijing-zhajiangmian.jpg` | 炸酱面 | N509FZ | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | `0f3e046de1365b83a0733cdadc8133283b6b660e666e54a9d33ca0c592e85fca` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Noodles_with_diced_meat_soybean_paste_before_stirring_(20210102181759).jpg) |
+| beijing | `beijing-jianbing.jpg` | 煎饼 | Alwaleed Khaled | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | `3915d992c4b056eb19d531322fc1c77c7e6ab29747dbd98de20696cfe97dabb6` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Jianbing_on_plate.jpg) |
+| shanghai | `shanghai-xiaolongbao.jpg` | 小笼包 | Junhao! | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) | `9b8fa09b315d4eba6781aed63ebf610bf927462da38db35388965c315dfa1a08` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Xiao_Long_Bao_by_Junhao!.jpg) |
+| shanghai | `shanghai-shengjian.jpg` | 生煎包 | Pauloleong2002 | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | `7a2dae2c00a6e605a546b3c4e0d729512aa319e14abc7ce0f80e3597fa27ccb3` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Shengjian_mantou.jpg) |
+| shanghai | `shanghai-scallion-noodles.jpg` | 葱油拌面 | Suginami | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | `206c0f5c6c8bdcae2fc246472779e96c2487ed2b2d39ca0eb1efb263a135702c` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:%E8%91%B1%E8%8A%B1%E8%91%B1%E6%B2%B9%E6%8B%8C%E9%9D%A2.jpg) |
+| guangzhou | `guangzhou-dim-sum.jpg` | 广式点心 | afterdog | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | `72d283a4f167b108336f4ed71314660ddb9fbe43f5cf4640467f826e0ac5c3ae` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Dim_Sum_Breakfast.jpg) |
+| guangzhou | `guangzhou-white-cut-chicken.jpg` | 白切鸡 | Sjschen | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) | `7e580a9063502368ae9318164523f01574d5e869e94f2b5c833f5a24582bb34e` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:BeiQieJi-WhiteCutChicken.jpg) |
+| guangzhou | `guangzhou-char-siu.jpg` | 叉烧 | Simon Shek | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) | `3cb2609e16bb13a4445bde55ec6af459c3483a9490b5bf25efff0e6ceb9bdb60` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Charsiu.jpg) |
+| chengdu | `chengdu-hotpot.jpg` | 四川火锅 | Fumikas Sagisavas | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | `605e40c4b6d9f1ba908423745ac5f84b4d46dbb9e20b7f59d47ef24dbb0ab313` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Sichuan-style_hotpot.jpg) |
+| chengdu | `chengdu-dandan-noodles.jpg` | 担担面 | Fumikas Sagisavas | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | `5f256cd80e38b74b6d4800391204532f6e0a025aa54a05aa4918df46dbfd573d` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Dan_Dan_Noodles.jpg) |
+| chengdu | `chengdu-red-oil-wontons.jpg` | 红油抄手 | NeoBatfreak | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | `584efb3bb71d6e086515cf6bd0ac989879387065f81a86f70a707eb05cae5f08` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Red_Oil_Wontons_(%E7%BA%A2%E6%B2%B9%E6%8A%84%E6%89%8B).jpg) |
+| xian | `xian-roujiamo.jpg` | 肉夹馍 | Suginami | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | `ec984434e5355dcda833ab81dad31ea8013ae346825d5c154983b5232e1cd50c` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Roujiamo_and_Laoling_Laodoufu.jpg) |
+| xian | `xian-liangpi.jpg` | 凉皮 | Jucember | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) | `9f1593e680faaad74a61bf30c432acfb63f444e567a20b716c3a6cb7c81a8838` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:LIANG_PI.jpg) |
+| xian | `xian-yangrou-paomo.jpg` | 羊肉泡馍 | Danielinblue | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) | `3acf1ed43f45afe772e20464a36fa2cabb076a32e9b1972d1a99dd999186cab4` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Yangrou_Paomo.JPG) |
+| tokyo | `tokyo-sushi.jpg` | 寿司 | Mojmir Churavy | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | `ad9acb78d6ee1deff5604ba0d98aa33bdab1716dbbc153a5688762770a8a944a` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Sushi_Plate_in_Organic_Sushi_Prague_4.jpg) |
+| tokyo | `tokyo-ramen.jpg` | 拉面 | Andy Li | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | `36a25477170e43a8eec06989b6d637e319ac948a88fb930561d5a883adad5f80` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Soy_Milk_Ramen_and_Tonkotsu_Miso_Ramen_by_Goemon_Ramen_Bar.jpg) |
+| tokyo | `tokyo-tempura.jpg` | 天妇罗 | ウィキ太郎(WikiTaro) | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | `c88418e0ccf8319741db4bad3f83744fe78b2793f1e32e98470f8e094699acca` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Maitake_Mushroom_Tempura_2021_Grifola_frondosa_%E8%88%9E%E8%8C%B8%E3%81%AE%E5%A4%A9%E3%81%B7%E3%82%89.jpg) |
+| singapore | `singapore-laksa.jpg` | 叻沙 | Andy Li | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | `95f8f4249688e8617e9289c217b66d8f3d1f5be2b193ccf84e9f104a510d60e9` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Noo.Meat_Laksa_-_Noo.Me_2024-12-02.jpg) |
+| singapore | `singapore-hainanese-chicken-rice.jpg` | 海南鸡饭 | Pauloleong2002 | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | `acae7dea8f119b36a07f23fe22689cf50c00c36d669c52d67f8f8a21c6c7303a` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Hainanese_chicken_rice_in_Singapore.jpg) |
+| singapore | `singapore-chili-crab.jpg` | 辣椒螃蟹 | chensiyuan | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) | `d7e63fdfc5ec52b28b834e75a2e0138c8a8636f95c0d661da650e70cd9b0b6c9` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Chili_crab_zz.jpg) |
+| berlin | `berlin-currywurst.jpg` | 咖喱肠 | Jrcraft Yt | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | `8eb01eb6304a81d00e50d355db278e9bb6bf73ea698684417df455a1322a20b4` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Currywurst_2019.jpg) |
+| berlin | `berlin-doner-kebab.jpg` | 旋转烤肉卷 | AleGranholm | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) | `4542c5bc88d5b48ee0d50ba164a20cadfaa50fedaf5cd48e5dae76d52a3958ea` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:D%C3%B6ner_Kebab,_Berlin,_2010_(01).jpg) |
+| berlin | `berlin-berliner-pfannkuchen.jpg` | 柏林果酱包 | Sebastian Koppehel | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | `468435b3316486c5c792c128c00addc2e251fb0d68161deb0f46c497ce3b94a4` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Berliner_Pfannkuchen_5.jpg) |
+| new-york | `new-york-bagel.jpg` | 贝果 | Funknendai | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | `1bd3f29fd5b4561a86df480839b360b31bf8cc379674191f73f6973e1a0c6371` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Montreal_bagel_with_lox.jpg) |
+| new-york | `new-york-pizza.jpg` | 纽约披萨 | Wil540 art | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | `a3cc2853a0e51e5e600f54bd18d499f25590245242d9128b205dbbc30d769d49` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:New_York_Style_Pizza_New_Park.jpg) |
+| new-york | `new-york-cheesecake.jpg` | 纽约芝士蛋糕 | Muago | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | `2347ff003d1e1f65bcd5dec56f203c1bfa2ab9f959388f6de3669a0d383e98d4` | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:New_York_cheesecake_3.jpg) |
 
-The images were resized by Wikimedia Commons for web delivery. Follow the
-linked source page for the full license text and any later license updates.
+The SHA-256 values cover the exact checked-in JPEG files. Wikimedia Commons
+generated the 1280px thumbnails where needed; the app records the resize in each
+food credit. Follow the linked source page for the full license text and any
+later license updates.

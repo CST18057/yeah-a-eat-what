@@ -53,7 +53,12 @@ Rules:
 - `alt`, `author`, `license`, `licenseUrl`, and the source page are mandatory.
 - The source page records where the asset came from; `credit` is display text
   derived from the normalized record and includes a resize disclosure.
-- Random selection consumes `getFoodCandidatesForRegion(regionId)`. It must not
-  parse `credit` or invent candidate data in the browser.
-- `getFoodForRegion(regionId)` remains a compatibility accessor that returns the
-  first candidate while the current v0.5 UI is migrated.
+- Random selection must build the server-side **place x city food candidates**
+  set from `region.places` and `getFoodCandidatesForRegion(regionId)`. It must
+  not parse `credit` or invent candidate data in the browser.
+- Each combined candidate must carry the same `placeId` with a distinct
+  `foodId`, `dish`, and `image`; excluding the previous result excludes the
+  complete `placeId + foodId/dish/image` tuple.
+- `getFoodForRegion(regionId)` is a places-preview compatibility accessor that
+  returns the first candidate. `/api/spin` must not call it, otherwise every
+  place would receive the same dish and the expanded catalog would be ignored.
