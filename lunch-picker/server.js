@@ -3,6 +3,7 @@
 const fs = require("node:fs");
 const fsp = require("node:fs/promises");
 const http = require("node:http");
+const net = require("node:net");
 const path = require("node:path");
 const {
   getRegions,
@@ -242,6 +243,83 @@ function createExploreRateLimiter({
   };
 }
 
+function normalizeIpAddress(value) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  let address = value.trim();
+  if (address.startsWith("::ffff:")) {
+    address = address.slice(7);
+  }
+
+  return net.isIP(address) ? address : null;
+}
+
+function createClientIpResolver(trustedProxyCidrs = []) {
+  const blockList = new net.BlockList();
+  const configuredCidrs = Array.isArray(trustedProxyCidrs)
+    ? trustedProxyCidrs
+    : String(trustedProxyCidrs || "").split(",");
+
+  for (const rawCidr of configuredCidrs) {
+    const cidr = String(rawCidr).trim();
+    if (!cidr) {
+      continue;
+    }
+
+    const [address, prefixValue] = cidr.split("/");
+    const ipVersion = net.isIP(address);
+    if (!ipVersion) {
+      continue;
+    }
+
+    const maxPrefix = ipVersion === 4 ? 32 : 128;
+    const prefix = prefixValue === undefined ? maxPrefix : Number(prefixValue);
+    if (!Number.isInteger(prefix) || prefix < 0 || prefix > maxPrefix) {
+      continue;
+    }
+
+    blockList.addSubnet(address, prefix, ipVersion === 4 ? "ipv4" : "ipv6");
+  }
+
+  function isTrustedProxy(address) {
+    if (!address) {
+      return false;
+    }
+    return blockList.check(address, net.isIP(address) === 6 ? "ipv6" : "ipv4");
+  }
+
+  return function resolveClientIp(req) {
+    const remoteAddress = normalizeIpAddress(req.socket.remoteAddress);
+    if (!remoteAddress || !isTrustedProxy(remoteAddress)) {
+      return remoteAddress || "unknown";
+    }
+
+    const cloudflareAddress = normalizeIpAddress(req.headers["cf-connecting-ip"]);
+    if (cloudflareAddress) {
+      return cloudflareAddress;
+    }
+
+    const forwardedAddresses = String(req.headers["x-forwarded-for"] || "")
+      .split(",")
+      .map(normalizeIpAddress)
+      .filter(Boolean);
+
+    for (let index = forwardedAddresses.length - 1; index >= 0; index -= 1) {
+      if (!isTrustedProxy(forwardedAddresses[index])) {
+        return forwardedAddresses[index];
+      }
+    }
+
+    if (forwardedAddresses.length > 0) {
+      return forwardedAddresses[0];
+    }
+
+    return normalizeIpAddress(req.headers["x-real-ip"]) || remoteAddress;
+  };
+}
+
 function rateLimitHeaders(rate) {
   return {
     "RateLimit-Limit": String(rate.limit),
@@ -305,7 +383,7 @@ async function handleApi(req, res, url, options) {
       return true;
     }
 
-    const rate = options.exploreRateLimiter.consume(req.socket.remoteAddress || "unknown");
+    const rate = options.exploreRateLimiter.consume(options.resolveClientIp(req));
     const headers = rateLimitHeaders(rate);
 
     if (!rate.allowed) {
@@ -462,6 +540,9 @@ function createServer(options = {}) {
     exploreRateLimiter: createExploreRateLimiter(options.exploreRateLimit),
     exploreProcessingDelayMs: options.exploreProcessingDelayMs || 0,
     exploreTimeoutMs: options.exploreTimeoutMs || EXPLORE_DEFAULT_TIMEOUT_MS,
+    resolveClientIp: createClientIpResolver(
+      options.trustedProxyCidrs ?? process.env.TRUSTED_PROXY_CIDRS,
+    ),
   };
 
   return http.createServer(async (req, res) => {
@@ -500,5 +581,6 @@ if (require.main === module) {
 module.exports = {
   createServer,
   createExploreRateLimiter,
+  createClientIpResolver,
   parseExploreQuery,
 };

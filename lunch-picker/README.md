@@ -44,6 +44,12 @@ npx playwright install-deps chromium
 Unknown cities return HTTP 404 with `error.code = "REGION_NOT_FOUND"`. Invalid
 JSON returns HTTP 400, and request bodies are limited to 16 KiB.
 
+Region exploration is limited to 30 requests per fixed 60-second window per
+client. By default the client key is the direct socket address. When the service
+is behind a trusted reverse proxy, set `TRUSTED_PROXY_CIDRS` (for example
+`127.0.0.1/32,::1/128`) before forwarding `CF-Connecting-IP` or
+`X-Forwarded-For`; forwarding headers are ignored from untrusted peers.
+
 Leaflet assets are served from `/vendor/leaflet/*`, mapped directly to the
 installed `node_modules/leaflet/dist/*` files.
 

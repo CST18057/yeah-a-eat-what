@@ -409,6 +409,59 @@ test("GET /api/explore rate limits the 31st request in a fixed window", async ()
   }
 });
 
+test("GET /api/explore uses client IPs from trusted proxies only", async () => {
+  const limited = await startServer({
+    exploreRateLimit: {
+      max: 2,
+      windowMs: 60000,
+      now: () => 0,
+    },
+    trustedProxyCidrs: ["127.0.0.1/32"],
+  });
+
+  try {
+    const pathname = explorePath({ west: 0, south: 0, east: 1, north: 1 });
+    const requestAs = (clientIp) =>
+      jsonRequest(pathname, { headers: { "CF-Connecting-IP": clientIp } }, limited.baseUrl);
+
+    assert.equal((await requestAs("203.0.113.10")).response.status, 200);
+    assert.equal((await requestAs("203.0.113.10")).response.status, 200);
+    assert.equal((await requestAs("203.0.113.10")).response.status, 429);
+    assert.equal((await requestAs("203.0.113.11")).response.status, 200);
+  } finally {
+    await stopServer(limited.server);
+  }
+});
+
+test("GET /api/explore ignores forwarding headers from untrusted peers", async () => {
+  const limited = await startServer({
+    exploreRateLimit: {
+      max: 1,
+      windowMs: 60000,
+      now: () => 0,
+    },
+  });
+
+  try {
+    const pathname = explorePath({ west: 0, south: 0, east: 1, north: 1 });
+    const first = await jsonRequest(
+      pathname,
+      { headers: { "CF-Connecting-IP": "203.0.113.20" } },
+      limited.baseUrl,
+    );
+    const second = await jsonRequest(
+      pathname,
+      { headers: { "CF-Connecting-IP": "203.0.113.21" } },
+      limited.baseUrl,
+    );
+
+    assert.equal(first.response.status, 200);
+    assert.equal(second.response.status, 429);
+  } finally {
+    await stopServer(limited.server);
+  }
+});
+
 test("GET /api/explore returns 504 after the internal deadline", async () => {
   const timed = await startServer({
     exploreProcessingDelayMs: 25,
