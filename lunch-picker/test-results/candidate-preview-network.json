@@ -14,7 +14,7 @@
     {
       "method": "POST",
       "pathname": "/api/spin",
-      "url": "http://127.0.0.1:4174/api/spin",
+      "url": "http://127.0.0.1:4317/api/spin",
       "body": "{\"regionId\":\"beijing\"}"
     }
   ],

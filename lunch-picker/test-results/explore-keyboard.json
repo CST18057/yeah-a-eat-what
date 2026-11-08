@@ -1,0 +1,28 @@
+[
+  {
+    "scenario": "ready-result",
+    "before": {
+      "zoom": 5,
+      "lat": 0.9283,
+      "lng": 0
+    },
+    "after": {
+      "zoom": 5,
+      "lat": 0.94478,
+      "lng": 3.51563
+    },
+    "status": "dirty"
+  },
+  {
+    "scenario": "in-flight",
+    "statusAfterResponse": "dirty",
+    "exploreRequests": [
+      {
+        "method": "GET",
+        "pathname": "/api/explore",
+        "url": "http://127.0.0.1:4317/api/explore?west=-12.88&south=-11.92&east=12.88&north=13.76&limit=40",
+        "body": ""
+      }
+    ]
+  }
+]

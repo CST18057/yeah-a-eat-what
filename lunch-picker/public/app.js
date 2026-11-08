@@ -41,6 +41,20 @@
   const EXPLORE_TIMEOUT_MS = 5000;
   const EXPLORE_CACHE_TTL_MS = 30000;
   const EXPLORE_CACHE_MAX_ENTRIES = 50;
+  const EXPLORE_RANGE_KEYS = new Set([
+    "ArrowUp",
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+    "+",
+    "=",
+    "-",
+    "_",
+    "PageUp",
+    "PageDown",
+    "Home",
+    "End",
+  ]);
 
   const state = {
     regions: [],
@@ -348,6 +362,11 @@
         { passive: true },
       );
       mapElement.addEventListener("dblclick", () => markExploreDirty());
+      mapElement.addEventListener("keydown", (event) => {
+        if (EXPLORE_RANGE_KEYS.has(event.key)) {
+          markExploreDirty();
+        }
+      });
       mapElement.addEventListener("click", (event) => {
         if (event.target.closest(".leaflet-control-zoom")) {
           markExploreDirty();

@@ -92,6 +92,8 @@ metadata.
   map caption.
 - `探索此区域` is available only in world view. The map must be moved or zoomed
   before the action becomes meaningful, and those gestures never request data.
+- Mouse, touch, zoom-control, and keyboard map navigation all mark existing
+  exploration results stale and cancel any in-flight exploration request.
 - Exploration uses a quantized 0.01° map boundary, a 5-second client timeout,
   last-request-wins sequencing, and a 30-second in-memory cache capped at 50
   entries.

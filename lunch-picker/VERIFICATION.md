@@ -16,6 +16,8 @@ Date: 2026-11-08
 - Added an independent exploration marker layer and popup source labels.
 - Added loading, dirty, ready, empty, truncated, too-large, rate-limited,
   timeout, and error states with retry and clear actions.
+- Keyboard map navigation now invalidates committed and in-flight exploration
+  results without treating programmatic world-view changes as user movement.
 - Preserved city search, candidate preview, lunch selection, places, map
   gestures, request ordering, and failure behavior.
 
@@ -31,8 +33,8 @@ git diff --check
 ## Results
 
 - `npm ci`: passed with 0 vulnerabilities.
-- `npm test`: 23/23 passed.
-- `npm run test:browser`: 29/29 passed.
+- `npm test`: 24/24 passed.
+- `npm run test:browser`: 31/31 passed.
 - `git diff --check`: passed.
 
 Browser scenarios:
@@ -53,19 +55,21 @@ Browser scenarios:
 14. Tile failure keeps city discovery usable
 15. Mobile city discovery supports cancel and confirm
 16. Explicit exploration is dirty-gated and cached
-17. Explore cache expires after thirty seconds
-18. Explore empty and truncated states stay separate from lunch data
-19. Explore rejects oversized regions without a request
-20. Explore rate limit shows retry countdown
-21. Explore timeout and error states can retry
-22. Explore client timeout aborts and can retry
-23. Explore keeps the latest request and clears on city exit
-24. Mobile exploration supports touch drag, zoom, clear, and return
-25. Exploration controls fit the 320px mobile viewport
-26. Places failure clears stale marker and popup
-27. Out-of-order city responses keep the latest city
-28. Pending spin is discarded after city change
-29. Tile failure popup stays unobstructed on desktop and mobile
+17. Keyboard map navigation invalidates exploration
+18. Explore cache expires after thirty seconds
+19. Explore empty and truncated states stay separate from lunch data
+20. Explore rejects oversized regions without a request
+21. Explore rate limit shows retry countdown
+22. Explore timeout and error states can retry
+23. Explore client timeout aborts and can retry
+24. Explore keeps the latest request and clears on city exit
+25. Mobile exploration supports touch drag, zoom, clear, and return
+26. Exploration controls fit the 320px mobile viewport
+27. Places failure clears stale marker and popup
+28. Out-of-order city responses keep the latest city
+29. Pending spin is discarded after city change
+30. Food image failures keep the selected result and map binding
+31. Tile failure popup stays unobstructed on desktop and mobile
 
 ## Evidence
 
@@ -83,6 +87,7 @@ recorded the evidence in `live-explore-check.json` and
 Exploration state/network evidence is stored in `explore-explicit.json`,
 `explore-cache.json`, `explore-rate-limit.json`, `explore-timeout-error.json`,
 `explore-client-timeout.json`, and `explore-last-write.json`.
+Keyboard invalidation evidence is stored in `explore-keyboard.json`.
 
 The state dataset on `#explore-toolbar` records status, request ID, source,
 limit, totals, truncation, error code, retry seconds, quantized bounds, cache

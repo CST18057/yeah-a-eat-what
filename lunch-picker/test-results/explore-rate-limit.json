@@ -17,7 +17,7 @@
       "north": 13.76
     },
     "cacheKey": "explore:v1:-12.88:-11.92:12.88:13.76:40",
-    "updatedAt": 1794122823643
+    "updatedAt": 1794124514318
   },
   "finalState": {
     "hidden": false,
@@ -37,19 +37,19 @@
       "north": 13.76
     },
     "cacheKey": "explore:v1:-12.88:-11.92:12.88:13.76:40",
-    "updatedAt": 1794122825709
+    "updatedAt": 1794124516386
   },
   "exploreRequests": [
     {
       "method": "GET",
       "pathname": "/api/explore",
-      "url": "http://127.0.0.1:4174/api/explore?west=-12.88&south=-11.92&east=12.88&north=13.76&limit=40",
+      "url": "http://127.0.0.1:4317/api/explore?west=-12.88&south=-11.92&east=12.88&north=13.76&limit=40",
       "body": ""
     },
     {
       "method": "GET",
       "pathname": "/api/explore",
-      "url": "http://127.0.0.1:4174/api/explore?west=-12.88&south=-11.92&east=12.88&north=13.76&limit=40",
+      "url": "http://127.0.0.1:4317/api/explore?west=-12.88&south=-11.92&east=12.88&north=13.76&limit=40",
       "body": ""
     }
   ]

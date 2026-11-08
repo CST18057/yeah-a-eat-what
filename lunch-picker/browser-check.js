@@ -2057,6 +2057,111 @@ const tests = [
     },
   },
   {
+    name: "keyboard map navigation invalidates exploration",
+    async run(browser) {
+      const evidence = [];
+
+      {
+        const { context, page, pageErrors } = await openPage(
+          browser,
+          { width: 1280, height: 900 },
+          {},
+        );
+        await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+        await waitForCityReady(page);
+        await waitForMarkers(page);
+        await waitForCityMarkers(page);
+        const selectedCity = await page.locator("#city-select").inputValue();
+        const resultText = await page.locator("#result-name").textContent();
+        const placesText = await page.locator("#places-list").textContent();
+
+        await page.locator("#world-view-button").click();
+        await zoomWorldMapWithWheel(page, 4);
+        await page.locator("#explore-button").click();
+        await page.waitForFunction(
+          () =>
+            document.querySelector("#explore-toolbar")?.dataset.status ===
+            "ready",
+        );
+        const before = await mapState(page);
+        await page.locator("#map").focus();
+        await page.keyboard.press("ArrowRight");
+        await page.waitForFunction(
+          () =>
+            document.querySelector("#explore-toolbar")?.dataset.status ===
+            "dirty",
+        );
+        await page.waitForTimeout(400);
+        const after = await mapState(page);
+
+        assert.ok(after.lng !== before.lng);
+        assert.equal(await page.locator(".explore-marker").count(), 0);
+        assert.equal(await page.locator("#city-select").inputValue(), selectedCity);
+        assert.equal(await page.locator("#result-name").textContent(), resultText);
+        assert.equal(await page.locator("#places-list").textContent(), placesText);
+        evidence.push({
+          scenario: "ready-result",
+          before,
+          after,
+          status: (await exploreState(page)).status,
+        });
+        assert.deepEqual(pageErrors, []);
+        await context.close();
+      }
+
+      {
+        const { context, page, pageErrors, apiRequests } = await openPage(
+          browser,
+          { width: 1280, height: 900 },
+          { exploreDelay: 700 },
+        );
+        await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+        await waitForCityReady(page);
+        await waitForMarkers(page);
+        await waitForCityMarkers(page);
+        apiRequests.length = 0;
+
+        await page.locator("#world-view-button").click();
+        await zoomWorldMapWithWheel(page, 4);
+        await page.locator("#explore-button").click();
+        await page.waitForFunction(
+          () =>
+            document.querySelector("#explore-toolbar")?.dataset.status ===
+            "loading",
+        );
+        await page.locator("#map").focus();
+        await page.keyboard.press("ArrowRight");
+        await page.waitForFunction(
+          () =>
+            document.querySelector("#explore-toolbar")?.dataset.status ===
+            "dirty",
+        );
+        await page.waitForTimeout(900);
+        assert.equal((await exploreState(page)).status, "dirty");
+        assert.equal(await page.locator(".explore-marker").count(), 0);
+        assert.equal(
+          apiRequests.filter((request) => request.pathname === "/api/explore")
+            .length,
+          1,
+        );
+        evidence.push({
+          scenario: "in-flight",
+          statusAfterResponse: (await exploreState(page)).status,
+          exploreRequests: apiRequests.filter(
+            (request) => request.pathname === "/api/explore",
+          ),
+        });
+        assert.deepEqual(pageErrors, []);
+        await context.close();
+      }
+
+      await fs.writeFile(
+        path.join(outputDir, "explore-keyboard.json"),
+        `${JSON.stringify(evidence, null, 2)}\n`,
+      );
+    },
+  },
+  {
     name: "explore cache expires after thirty seconds",
     async run(browser) {
       const { context, page, pageErrors, apiRequests } = await openPage(
