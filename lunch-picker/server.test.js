@@ -300,8 +300,12 @@ test("POST /api/spin returns a place from the requested city", async () => {
   assert.equal(body.region.name, "西安");
   assert.ok(body.place.id.startsWith("xian-"));
   assert.equal(body.place.source.provider, "OpenStreetMap");
-  assert.equal(body.place.food.dish, "肉夹馍");
-  assert.equal(body.place.food.image, "/food/xian-roujiamo.jpg");
+  const selectedFood = getFoodCandidatesForRegion("xian").find(
+    (food) => food.foodId === body.place.food.foodId,
+  );
+  assert.ok(selectedFood, "spin result food must belong to the city catalog");
+  assert.equal(body.place.food.dish, selectedFood.dish);
+  assert.equal(body.place.food.image, selectedFood.image);
   assert.equal(body.place.food.source.provider, "Wikimedia Commons");
   assert.equal(body.selection.repeated, false);
   assert.equal(body.selection.repeatReason, null);
