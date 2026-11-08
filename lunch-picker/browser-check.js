@@ -166,9 +166,14 @@ async function openPage(browser, viewport, options) {
   const page = await context.newPage();
   const pageErrors = [];
   const apiRequests = [];
+  const tileRequests = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
   page.on("request", (request) => {
-    const pathname = new URL(request.url()).pathname;
+    const requestUrl = new URL(request.url());
+    const pathname = requestUrl.pathname;
+    if (requestUrl.href.includes("/appmaptile")) {
+      tileRequests.push(requestUrl.href);
+    }
     if (pathname.startsWith("/api/")) {
       apiRequests.push({
         method: request.method(),
@@ -178,7 +183,7 @@ async function openPage(browser, viewport, options) {
     }
   });
   await installApiRoutes(page, options);
-  return { context, page, pageErrors, apiRequests };
+  return { context, page, pageErrors, apiRequests, tileRequests };
 }
 
 async function waitForCityReady(page) {
@@ -311,7 +316,7 @@ const tests = [
   {
     name: "desktop core flow",
     async run(browser) {
-      const { context, page, pageErrors } = await openPage(
+      const { context, page, pageErrors, tileRequests } = await openPage(
         browser,
         { width: 1440, height: 1000 },
         {},
@@ -320,6 +325,17 @@ const tests = [
       await waitForCityReady(page);
       await waitForMarkers(page);
       await waitForCityMarkers(page);
+      await page.waitForFunction(
+        () => document.querySelectorAll("img.leaflet-tile").length > 0,
+      );
+
+      assert.ok(tileRequests.length > 0, "No map tile request was made");
+      const tileUrl = new URL(tileRequests[0]);
+      assert.equal(tileUrl.pathname, "/appmaptile");
+      assert.equal(tileUrl.searchParams.get("lang"), "zh_cn");
+      assert.equal(tileUrl.searchParams.get("size"), "1");
+      assert.equal(tileUrl.searchParams.get("scale"), "1");
+      assert.equal(tileUrl.searchParams.get("style"), "8");
 
       assert.equal(await page.locator("#city-select option").count(), 9);
       assert.equal(await page.locator(".place-button").count(), 5);
@@ -339,6 +355,22 @@ const tests = [
         path: path.join(outputDir, "desktop-core.png"),
         fullPage: true,
       });
+      await fs.writeFile(
+        path.join(outputDir, "tile-source.json"),
+        `${JSON.stringify(
+          {
+            sampleRequests: tileRequests.slice(0, 5),
+            expected: {
+              lang: "zh_cn",
+              size: "1",
+              scale: "1",
+              style: "8",
+            },
+          },
+          null,
+          2,
+        )}\n`,
+      );
       assert.deepEqual(pageErrors, []);
       await context.close();
     },
