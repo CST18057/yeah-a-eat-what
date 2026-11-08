@@ -1,0 +1,120 @@
+{
+  "head": "e167a4e",
+  "programmaticWorldViewState": {
+    "hidden": false,
+    "status": "idle",
+    "requestId": "",
+    "source": "",
+    "limit": 40,
+    "total": 0,
+    "returned": 0,
+    "truncated": false,
+    "errorCode": "",
+    "retryAfterSeconds": null,
+    "bounds": null,
+    "cacheKey": "",
+    "updatedAt": 0
+  },
+  "readyScenario": {
+    "before": {
+      "map": {
+        "zoom": 5,
+        "lat": 0.00356,
+        "lng": 0.12684
+      },
+      "explore": {
+        "hidden": false,
+        "status": "ready",
+        "requestId": "3",
+        "source": "network",
+        "limit": 40,
+        "total": 3,
+        "returned": 3,
+        "truncated": false,
+        "errorCode": "",
+        "retryAfterSeconds": null,
+        "bounds": {
+          "west": -12.75,
+          "south": -12.82,
+          "east": 13.01,
+          "north": 12.86
+        },
+        "cacheKey": "explore:v1:-12.75:-12.82:13.01:12.86:40",
+        "updatedAt": 1794124783904
+      },
+      "markerCount": 3
+    },
+    "after": {
+      "map": {
+        "zoom": 5,
+        "lat": 0.02197,
+        "lng": 3.64746
+      },
+      "explore": {
+        "hidden": false,
+        "status": "ready",
+        "requestId": "3",
+        "source": "network",
+        "limit": 40,
+        "total": 3,
+        "returned": 3,
+        "truncated": false,
+        "errorCode": "",
+        "retryAfterSeconds": null,
+        "bounds": {
+          "west": -12.75,
+          "south": -12.82,
+          "east": 13.01,
+          "north": 12.86
+        },
+        "cacheKey": "explore:v1:-12.75:-12.82:13.01:12.86:40",
+        "updatedAt": 1794124783904
+      },
+      "markerCount": 3
+    }
+  },
+  "inflightScenario": {
+    "beforeMap": {
+      "zoom": 5,
+      "lat": 0.02197,
+      "lng": 3.64746
+    },
+    "after": {
+      "map": {
+        "zoom": 5,
+        "lat": 0.02197,
+        "lng": 7.16309
+      },
+      "explore": {
+        "hidden": false,
+        "status": "ready",
+        "requestId": "5",
+        "source": "network",
+        "limit": 40,
+        "total": 3,
+        "returned": 3,
+        "truncated": false,
+        "errorCode": "",
+        "retryAfterSeconds": null,
+        "bounds": {
+          "west": -9.23,
+          "south": -12.82,
+          "east": 16.53,
+          "north": 12.86
+        },
+        "cacheKey": "explore:v1:-9.23:-12.82:16.53:12.86:40",
+        "updatedAt": 1794124785752
+      },
+      "markerCount": 3,
+      "exploreRequests": [
+        {
+          "method": "GET",
+          "pathname": "/api/explore",
+          "url": "http://127.0.0.1:4317/api/explore?west=-9.23&south=-12.82&east=16.53&north=12.86&limit=40",
+          "body": ""
+        }
+      ]
+    }
+  },
+  "pageErrors": []
+}
