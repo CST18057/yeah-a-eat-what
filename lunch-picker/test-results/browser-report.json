@@ -2,96 +2,101 @@
   {
     "name": "desktop core flow",
     "status": "passed",
-    "durationMs": 558
+    "durationMs": 586
   },
   {
     "name": "mobile core flow",
     "status": "passed",
-    "durationMs": 449
+    "durationMs": 608
   },
   {
     "name": "desktop world browsing does not change lunch state",
     "status": "passed",
-    "durationMs": 1572
+    "durationMs": 1637
   },
   {
     "name": "mobile world browsing supports pinch and return",
     "status": "passed",
-    "durationMs": 1129
+    "durationMs": 1167
   },
   {
     "name": "four new cities switch map and places coherently",
     "status": "passed",
-    "durationMs": 854
+    "durationMs": 872
   },
   {
     "name": "delayed places responses preserve the world view",
     "status": "passed",
-    "durationMs": 2920
+    "durationMs": 2935
   },
   {
     "name": "city search follows normalization rules without side effects",
     "status": "passed",
-    "durationMs": 504
+    "durationMs": 444
   },
   {
     "name": "candidate preview stays local across cancel, escape, and return",
     "status": "passed",
-    "durationMs": 825
+    "durationMs": 717
   },
   {
     "name": "candidate confirmation switches once and resets lunch state",
     "status": "passed",
-    "durationMs": 621
+    "durationMs": 605
   },
   {
     "name": "rapid confirms keep the latest city only",
     "status": "passed",
-    "durationMs": 1361
+    "durationMs": 1344
   },
   {
     "name": "world view survives a pending candidate confirmation",
     "status": "passed",
-    "durationMs": 1200
+    "durationMs": 1219
   },
   {
     "name": "candidate confirmation failure keeps the new city and remains usable",
     "status": "passed",
-    "durationMs": 450
+    "durationMs": 439
   },
   {
     "name": "delayed current places response does not close a candidate preview",
     "status": "passed",
-    "durationMs": 1334
+    "durationMs": 1345
   },
   {
     "name": "tile failure keeps city discovery usable",
     "status": "passed",
-    "durationMs": 532
+    "durationMs": 517
   },
   {
     "name": "mobile city discovery supports cancel and confirm",
     "status": "passed",
-    "durationMs": 577
+    "durationMs": 594
   },
   {
     "name": "places failure clears stale marker and popup",
     "status": "passed",
-    "durationMs": 354
+    "durationMs": 344
   },
   {
     "name": "out-of-order city responses keep the latest city",
     "status": "passed",
-    "durationMs": 1200
+    "durationMs": 1206
   },
   {
     "name": "pending spin is discarded after city switch",
     "status": "passed",
-    "durationMs": 993
+    "durationMs": 998
+  },
+  {
+    "name": "food image failures keep the selected result and map binding",
+    "status": "passed",
+    "durationMs": 1125
   },
   {
     "name": "tile failure popup stays unobstructed on desktop and mobile",
     "status": "passed",
-    "durationMs": 1768
+    "durationMs": 1807
   }
 ]

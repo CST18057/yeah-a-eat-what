@@ -38,6 +38,63 @@ const namesByRegion = {
   "new-york": ["Chelsea Market", "Grand Central Terminal", "Essex Market", "Queens Night Market", "Brooklyn Borough Hall Greenmarket"],
 };
 
+const foodByRegion = {
+  beijing: {
+    dish: "北京烤鸭",
+    image: "/food/beijing-peking-duck.jpg",
+    alt: "盘中片好的北京烤鸭示例图片",
+    credit: "Wikimedia Commons · CC BY-SA 4.0 · Mcyjerry",
+  },
+  shanghai: {
+    dish: "小笼包",
+    image: "/food/shanghai-xiaolongbao.jpg",
+    alt: "蒸笼里的小笼包示例图片",
+    credit: "Wikimedia Commons · CC BY 2.0 · Junhao!",
+  },
+  guangzhou: {
+    dish: "广式点心",
+    image: "/food/guangzhou-dim-sum.jpg",
+    alt: "摆满蒸笼的广式点心示例图片",
+    credit: "Wikimedia Commons · CC0 · afterdog",
+  },
+  chengdu: {
+    dish: "四川火锅",
+    image: "/food/chengdu-hotpot.jpg",
+    alt: "红汤四川火锅与配菜示例图片",
+    credit: "Wikimedia Commons · CC0 · Fumikas Sagisavas",
+  },
+  xian: {
+    dish: "肉夹馍",
+    image: "/food/xian-roujiamo.jpg",
+    alt: "肉夹馍与豆腐汤示例图片",
+    credit: "Wikimedia Commons · CC0 · Suginami",
+  },
+  tokyo: {
+    dish: "寿司",
+    image: "/food/tokyo-sushi.jpg",
+    alt: "黑色餐盘上的寿司拼盘示例图片",
+    credit: "Wikimedia Commons · CC0 · Mojmir Churavy",
+  },
+  singapore: {
+    dish: "叻沙",
+    image: "/food/singapore-laksa.jpg",
+    alt: "一碗叻沙汤面示例图片",
+    credit: "Wikimedia Commons · CC0 · Andy Li",
+  },
+  berlin: {
+    dish: "咖喱肠",
+    image: "/food/berlin-currywurst.jpg",
+    alt: "咖喱肠配薯条示例图片",
+    credit: "Wikimedia Commons · CC0 · Jrcraft Yt",
+  },
+  "new-york": {
+    dish: "贝果",
+    image: "/food/new-york-bagel.jpg",
+    alt: "夹烟熏三文鱼的芝麻贝果示例图片",
+    credit: "Wikimedia Commons · CC0 · Funknendai",
+  },
+};
+
 function placesFor(regionId) {
   const region = regionFixtures.find((item) => item.id === regionId);
   return namesByRegion[regionId].map((name, index) => ({
@@ -48,6 +105,7 @@ function placesFor(regionId) {
     lng: region.center.lng + (index - 2) * 0.006,
     address: `${region.name}示例路 ${index + 1} 号`,
     source: "OpenStreetMap",
+    food: foodByRegion[regionId],
   }));
 }
 
@@ -110,6 +168,10 @@ async function installApiRoutes(page, options = {}) {
         body: mapTileFixture,
       }),
     );
+  }
+
+  if (options.failFoodImages) {
+    await page.route("**/food/**", (route) => route.abort());
   }
 }
 
@@ -349,8 +411,52 @@ const tests = [
         () => document.querySelector("#result-name")?.textContent === "北京烤鸭",
       );
       assert.match(await page.locator("#global-status").textContent(), /北京烤鸭/);
+      assert.equal(await page.locator("#result-media").isVisible(), true);
+      assert.equal(await page.locator("#result-image").isVisible(), true);
+      assert.equal(
+        await page.locator("#result-image").evaluate((image) => image.naturalWidth > 0),
+        true,
+      );
+      assert.match(await page.locator("#result-image").getAttribute("alt"), /示例图片/);
+      assert.match(
+        await page.locator("#result-image-credit").textContent(),
+        /Wikimedia Commons.*Mcyjerry/,
+      );
+      const desktopResultCard = await page.locator("#result-card").boundingBox();
+      const desktopResultMedia = await page.locator("#result-media").boundingBox();
+      assert.ok(
+        desktopResultMedia.x >= desktopResultCard.x &&
+          desktopResultMedia.x + desktopResultMedia.width <=
+            desktopResultCard.x + desktopResultCard.width,
+        "Desktop food image exceeds the result card",
+      );
       await page.waitForSelector(".popup-name");
       assert.equal(await page.locator(".popup-name").textContent(), "北京烤鸭");
+      await page.waitForFunction(() => {
+        const popup = document.querySelector(".leaflet-popup");
+        const image = document.querySelector(".popup-food-image");
+        return (
+          popup &&
+          getComputedStyle(popup).opacity === "1" &&
+          image &&
+          image.complete &&
+          image.naturalWidth > 0
+        );
+      });
+      await page.locator(".popup-food-image").scrollIntoViewIfNeeded();
+      assert.equal(await page.locator(".popup-food-image").isVisible(), true);
+      assert.equal(
+        await page
+          .locator(".popup-food-image")
+          .evaluate((image) => image.naturalWidth > 0),
+        true,
+      );
+      assert.equal(
+        await page.locator(".popup-food").evaluate((media) =>
+          media.closest("[data-place-id]")?.dataset.placeId,
+        ),
+        await page.locator("#result-card").getAttribute("data-place-id"),
+      );
       await page.screenshot({
         path: path.join(outputDir, "desktop-core.png"),
         fullPage: true,
@@ -398,8 +504,31 @@ const tests = [
       await page.waitForFunction(
         () => document.querySelector("#result-name")?.textContent === "北京烤鸭",
       );
+      assert.equal(await page.locator("#result-media").isVisible(), true);
+      assert.equal(await page.locator("#result-image").isVisible(), true);
+      const mobileResultCard = await page.locator("#result-card").boundingBox();
+      const mobileResultMedia = await page.locator("#result-media").boundingBox();
+      assert.ok(
+        mobileResultMedia.x >= mobileResultCard.x &&
+          mobileResultMedia.x + mobileResultMedia.width <=
+            mobileResultCard.x + mobileResultCard.width,
+        "Mobile food image exceeds the result card",
+      );
       await page.waitForSelector(".popup-name");
       assert.equal(await page.locator(".popup-name").textContent(), "北京烤鸭");
+      await page.waitForFunction(() => {
+        const popup = document.querySelector(".leaflet-popup");
+        const image = document.querySelector(".popup-food-image");
+        return (
+          popup &&
+          getComputedStyle(popup).opacity === "1" &&
+          image &&
+          image.complete &&
+          image.naturalWidth > 0
+        );
+      });
+      await page.locator(".popup-food-image").scrollIntoViewIfNeeded();
+      assert.equal(await page.locator(".popup-food-image").isVisible(), true);
       await page.screenshot({
         path: path.join(outputDir, "mobile-core.png"),
         fullPage: true,
@@ -1678,6 +1807,71 @@ const tests = [
       assert.equal(await page.locator("#spin-button").isEnabled(), true);
       assert.deepEqual(pageErrors, []);
       await context.close();
+    },
+  },
+  {
+    name: "food image failures keep the selected result and map binding",
+    async run(browser) {
+      const viewports = [
+        { width: 1280, height: 900, suffix: "desktop" },
+        { width: 390, height: 844, suffix: "mobile" },
+      ];
+
+      for (const viewport of viewports) {
+        const { context, page, pageErrors } = await openPage(
+          browser,
+          { width: viewport.width, height: viewport.height },
+          { failFoodImages: true },
+        );
+        await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+        await waitForCityReady(page);
+        await waitForMarkers(page);
+
+        await page.locator("#spin-button").click();
+        await page.waitForFunction(
+          () => document.querySelector("#result-name")?.textContent === "北京烤鸭",
+        );
+        await page.waitForSelector("#result-image-fallback:not([hidden])");
+        await page.waitForSelector(".popup-food-fallback:not([hidden])");
+
+        assert.equal(await page.locator("#result-media").isVisible(), true);
+        assert.equal(await page.locator("#result-image").isVisible(), false);
+        assert.equal(
+          (await page.locator("#result-image-fallback").textContent()).trim(),
+          "美食图片暂不可用",
+        );
+        assert.match(
+          await page.locator("#result-image-credit").textContent(),
+          /Wikimedia Commons/,
+        );
+        assert.equal(
+          await page.locator("#result-card").getAttribute("data-place-id"),
+          "beijing-1",
+        );
+        assert.equal(
+          await page.locator(".popup-food").evaluate((media) =>
+            media.closest("[data-place-id]")?.dataset.placeId,
+          ),
+          "beijing-1",
+        );
+        assert.equal(await page.locator(".popup-food-image").isVisible(), false);
+        assert.equal(
+          (await page.locator(".popup-food-fallback").textContent()).trim(),
+          "美食图片暂不可用",
+        );
+        assert.equal(await page.locator(".popup-name").textContent(), "北京烤鸭");
+        await assertNoOverflow(page);
+
+        await page.screenshot({
+          path: path.join(
+            outputDir,
+            `food-image-failure-${viewport.suffix}.png`,
+          ),
+          fullPage: true,
+        });
+        assert.deepEqual(pageErrors, []);
+        await context.close();
+      }
     },
   },
   {

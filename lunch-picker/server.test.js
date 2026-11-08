@@ -3,6 +3,7 @@
 const assert = require("node:assert/strict");
 const { after, before, test } = require("node:test");
 const cities = require("./catalog/cities");
+const { getFoodForRegion } = require("./catalog/food-images");
 const { validateRegions } = require("./catalog/validate");
 const { spinRegion } = require("./data");
 const { createServer } = require("./server");
@@ -95,6 +96,25 @@ test("catalog validation rejects an empty city", () => {
   );
 });
 
+test("every city has a licensed local food example image", async () => {
+  for (const city of cities) {
+    const food = getFoodForRegion(city.id);
+    assert.ok(food, `missing food example for ${city.id}`);
+    assert.match(food.image, /^\/food\/[a-z0-9-]+\.jpg$/);
+    assert.ok(food.alt.length > 0);
+    assert.ok(food.credit.length > 0);
+    assert.equal(food.source.provider, "Wikimedia Commons");
+    assert.ok(
+      food.source.url.startsWith("https://commons.wikimedia.org/wiki/File:"),
+    );
+
+    const image = await fetch(`${baseUrl}${food.image}`);
+    assert.equal(image.status, 200);
+    assert.equal(image.headers.get("content-type"), "image/jpeg");
+    assert.ok(Number(image.headers.get("content-length")) > 10000);
+  }
+});
+
 test("GET /api/regions returns the nine-city contract", async () => {
   const { response, body } = await jsonRequest("/api/regions");
   assert.equal(response.status, 200);
@@ -130,6 +150,13 @@ test("new city endpoints expose the required place counts", async () => {
     assert.equal(body.places.length, count);
     assert.equal(new Set(body.places.map((place) => place.id)).size, count);
     assert.ok(body.places.every((place) => place.source.provider === "OpenStreetMap"));
+    assert.ok(
+      body.places.every(
+        (place) =>
+          place.food.image.startsWith("/food/") &&
+          place.food.source.license.length > 0,
+      ),
+    );
   }
 });
 
@@ -185,6 +212,9 @@ test("POST /api/spin returns a place from the requested city", async () => {
   assert.equal(body.region.name, "西安");
   assert.ok(body.place.id.startsWith("xian-"));
   assert.equal(body.place.source.provider, "OpenStreetMap");
+  assert.equal(body.place.food.dish, "肉夹馍");
+  assert.equal(body.place.food.image, "/food/xian-roujiamo.jpg");
+  assert.equal(body.place.food.source.provider, "Wikimedia Commons");
 });
 
 test("spin selection is deterministic for an injected random source", () => {
