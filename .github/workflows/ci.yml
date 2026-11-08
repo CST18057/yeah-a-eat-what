@@ -40,6 +40,9 @@ jobs:
       - name: Run browser tests
         run: npm run test:browser
 
+      - name: Run cross-feature browser tests
+        run: npm run test:cross-feature
+
       - name: Check whitespace
         working-directory: .
         run: git diff --check
