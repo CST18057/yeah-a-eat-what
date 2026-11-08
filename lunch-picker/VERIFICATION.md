@@ -49,8 +49,8 @@ git diff --check
 
 - `npm ci`: passed with 0 vulnerabilities.
 - `npm ci --omit=dev`: passed without invoking Playwright.
-- `npm test`: 26/26 passed.
-- `npm run test:browser`: 32/32 passed.
+- `npm test`: 28/28 passed.
+- `npm run test:browser`: 33/33 passed.
 - `npm run test:cross-feature`: 7/7 passed.
 - `npm run audit:food-images`: 9 regions, 27 unique candidates and images.
 - `npm run verify:food-sources`: 27/27 Wikimedia Commons records matched.
@@ -90,6 +90,7 @@ Browser scenarios:
 30. Food image failures keep the selected result and map binding
 31. Tile failure popup stays unobstructed on desktop and mobile
 32. Consecutive spins avoid repeating place and food
+33. Real spin keeps result card and map popup food binding aligned
 
 Cross-feature fixture scenarios:
 
@@ -126,6 +127,8 @@ Exploration state/network evidence is stored in `explore-explicit.json`,
 Keyboard invalidation evidence is stored in `explore-keyboard.json`.
 Spin exclusion evidence is stored in `spin-exclusion-desktop.png` and
 `spin-exclusion-mobile.png`; requests record the submitted `exclude` identities.
+Real-server result-card/popup binding evidence is stored in
+`real-spin-food-binding-desktop.png` and `real-spin-food-binding-mobile.png`.
 `npm run test:spin-real` validates the real server and catalog after the
 multi-food data provider is merged; it requires the first three Beijing results
 to differ in placeId, foodId, dish, and image.
