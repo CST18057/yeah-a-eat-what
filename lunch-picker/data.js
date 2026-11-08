@@ -1,6 +1,7 @@
 "use strict";
 
 const cities = require("./catalog/cities");
+const { getFoodForRegion } = require("./catalog/food-images");
 const { validateRegions } = require("./catalog/validate");
 
 const regions = validateRegions(cities);
@@ -8,6 +9,11 @@ const regionById = new Map(regions.map((region) => [region.id, region]));
 
 function clone(value) {
   return structuredClone(value);
+}
+
+function placeWithFood(region, place) {
+  const food = getFoodForRegion(region.id);
+  return food ? { ...place, food: clone(food) } : clone(place);
 }
 
 function publicRegion(region) {
@@ -40,7 +46,7 @@ function getPlacesByRegionId(regionId) {
 
   return {
     region: publicRegion(region),
-    places: clone(region.places),
+    places: region.places.map((place) => placeWithFood(region, place)),
   };
 }
 
@@ -56,7 +62,7 @@ function spinRegion(regionId, random = Math.random) {
 
   return {
     region: publicRegion(region),
-    place: clone(region.places[index]),
+    place: placeWithFood(region, region.places[index]),
   };
 }
 

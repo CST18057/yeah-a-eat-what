@@ -7,6 +7,11 @@
   const searchStatus = document.querySelector("#search-status");
   const searchResults = document.querySelector("#city-search-results");
   const spinButton = document.querySelector("#spin-button");
+  const resultCard = document.querySelector("#result-card");
+  const resultMedia = document.querySelector("#result-media");
+  const resultImage = document.querySelector("#result-image");
+  const resultImageFallback = document.querySelector("#result-image-fallback");
+  const resultImageCredit = document.querySelector("#result-image-credit");
   const resultName = document.querySelector("#result-name");
   const resultMeta = document.querySelector("#result-meta");
   const globalStatus = document.querySelector("#global-status");
@@ -128,6 +133,7 @@
       place.id ?? place.osmId ?? place.osm_id ?? place.slug ?? index,
     );
     const context = [place.cuisine, place.address].filter(Boolean).join(" · ");
+    const food = place.food && typeof place.food === "object" ? place.food : {};
     return {
       ...place,
       id,
@@ -146,6 +152,14 @@
           lat: place.lat ?? place.latitude,
           lng: place.lng ?? place.lon ?? place.longitude,
         }),
+      food: food.image
+        ? {
+            dish: String(food.dish ?? "地方美食"),
+            image: String(food.image),
+            alt: String(food.alt ?? `${food.dish ?? "地方美食"}示例图片`),
+            credit: String(food.credit ?? "来源信息待补充"),
+          }
+        : null,
     };
   }
 
@@ -401,11 +415,40 @@
     const name = document.createElement("strong");
     const detail = document.createElement("span");
 
+    wrapper.dataset.placeId = place.id;
     name.className = "popup-name";
     name.textContent = place.name;
     detail.className = "popup-detail";
     detail.textContent = place.detail;
     wrapper.append(name, detail);
+
+    if (place.food?.image) {
+      const media = document.createElement("figure");
+      const frame = document.createElement("div");
+      const image = document.createElement("img");
+      const fallback = document.createElement("span");
+      const caption = document.createElement("figcaption");
+
+      media.className = "popup-food";
+      frame.className = "popup-food-frame";
+      image.className = "popup-food-image";
+      image.src = place.food.image;
+      image.alt = place.food.alt;
+      image.decoding = "async";
+      fallback.className = "popup-food-fallback";
+      fallback.textContent = "美食图片暂不可用";
+      fallback.hidden = true;
+      caption.className = "popup-food-caption";
+      caption.textContent = `${place.food.dish} · 示例图片 · ${place.food.credit}`;
+      image.addEventListener("error", () => {
+        image.hidden = true;
+        fallback.hidden = false;
+      });
+      frame.append(image, fallback);
+      media.append(frame, caption);
+      wrapper.append(media);
+    }
+
     return wrapper;
   }
 
@@ -702,9 +745,34 @@
     setMapCaptionForCurrentCity();
   }
 
-  function renderResult(name, meta) {
+  function renderResult(name, meta, place = null) {
     resultName.textContent = name;
     resultMeta.textContent = meta;
+
+    if (place) {
+      resultCard.dataset.placeId = place.id;
+    } else {
+      delete resultCard.dataset.placeId;
+    }
+
+    if (!place?.food?.image) {
+      resultMedia.hidden = true;
+      resultImage.hidden = false;
+      resultImageFallback.hidden = true;
+      resultImage.removeAttribute("src");
+      resultImage.alt = "";
+      resultImageCredit.textContent = "";
+      delete resultCard.dataset.foodImage;
+      return;
+    }
+
+    resultCard.dataset.foodImage = place.food.image;
+    resultMedia.hidden = false;
+    resultImage.hidden = false;
+    resultImageFallback.hidden = true;
+    resultImage.src = place.food.image;
+    resultImage.alt = place.food.alt;
+    resultImageCredit.textContent = place.food.credit;
   }
 
   function clearPlacesList(message) {
@@ -889,8 +957,16 @@
         throw new Error("Spin response did not include a place");
       }
 
-      renderResult(place.name, `${spinningRegion.name} · ${place.detail}`);
-      setStatus(globalStatus, `这顿就吃 ${place.name}。`);
+      const foodMeta = place.food
+        ? `试试${place.food.dish} · ${place.detail}`
+        : place.detail;
+      renderResult(place.name, `${spinningRegion.name} · ${foodMeta}`, place);
+      setStatus(
+        globalStatus,
+        place.food
+          ? `这顿去 ${place.name}，试试${place.food.dish}。图片为示例，不代表实际门店。`
+          : `这顿去 ${place.name}。`,
+      );
       openPlace(place);
     } catch (error) {
       if (
@@ -953,6 +1029,10 @@
       }
       event.preventDefault();
       spin();
+    });
+    resultImage.addEventListener("error", () => {
+      resultImage.hidden = true;
+      resultImageFallback.hidden = false;
     });
 
     try {

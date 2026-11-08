@@ -1,8 +1,8 @@
 # Lunch Picker
 
-v0.4.1 的城市发现版本，包含高德底图地址热修复。应用提供 9 个城市、43 个
-OpenStreetMap 公开地点、
-Leaflet 世界地图、城市搜索与候选预览、地点清单和随机午餐抽签。
+v0.4.2 的城市发现版本，包含高德底图地址热修复和抽签结果美食图片。应用提供
+9 个城市、43 个 OpenStreetMap 公开地点、Leaflet 世界地图、城市搜索与候选预览、
+地点清单和随机午餐抽签。
 
 ## Run
 
@@ -41,6 +41,9 @@ npx playwright install-deps chromium
 - `GET /api/regions/:id/places` returns `{ region, places }`.
 - `POST /api/spin` with `{ "regionId": "beijing" }` returns `{ region, place }`.
 
+Each place includes a `food` object with a display dish, local image path,
+descriptive alt text, credit text, and Wikimedia Commons source metadata.
+
 Unknown cities return HTTP 404 with `error.code = "REGION_NOT_FOUND"`. Invalid
 JSON returns HTTP 400, and request bodies are limited to 16 KiB.
 
@@ -54,6 +57,11 @@ Berlin 4, and New York 5, alongside the original Chinese cities. Coordinates,
 OpenStreetMap identifiers, and source URLs are stored with every city and place.
 These entries are public examples for inspiration; they are not merchant
 listings or a real-time availability feed.
+
+The nine bundled food images are example photography, not photos of the
+selected public place or claims about a real merchant. Source and license
+details are recorded in `FOOD_IMAGES.md` and returned in each place's `food`
+metadata.
 
 ## Map Behavior
 
@@ -86,3 +94,7 @@ listings or a real-time availability feed.
 - A pending spin is discarded if the user changes city before it returns.
 - If map tiles fail, the fallback notice sits outside the map viewport so it
   cannot cover a place popup; markers and selection remain usable.
+- After a spin, the result card shows the selected place with its example food
+  image and credit. The map opens on the same selected place, and its popup
+  shows the same image. If the image cannot load, both surfaces keep the place,
+  dish name, and accessible fallback text.
