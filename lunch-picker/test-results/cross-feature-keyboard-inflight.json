@@ -1,0 +1,39 @@
+{
+  "beforeMap": {
+    "zoom": 5,
+    "lat": 0.00356,
+    "lng": 0.12684
+  },
+  "after": {
+    "map": {
+      "zoom": 5,
+      "lat": 0.02197,
+      "lng": 3.64746
+    },
+    "explore": {
+      "hidden": false,
+      "status": "dirty",
+      "requestId": "",
+      "source": "",
+      "limit": 40,
+      "total": 0,
+      "returned": 0,
+      "truncated": false,
+      "errorCode": "",
+      "retryAfterSeconds": null,
+      "bounds": null,
+      "cacheKey": "",
+      "updatedAt": 0
+    },
+    "markerCount": 0,
+    "exploreRequests": [
+      {
+        "method": "GET",
+        "pathname": "/api/explore",
+        "url": "http://127.0.0.1:4318/api/explore?west=-12.75&south=-12.82&east=13.01&north=12.86&limit=40",
+        "body": ""
+      }
+    ]
+  },
+  "pageErrors": []
+}
