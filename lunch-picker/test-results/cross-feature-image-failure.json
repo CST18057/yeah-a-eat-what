@@ -1,0 +1,14 @@
+{
+  "baseline": {
+    "cityId": "beijing",
+    "placesText": "01北京烤鸭地方菜 · 北京示例路 1 号02炸酱面馆小吃 · 北京示例路 2 号03铜锅涮肉地方菜 · 北京示例路 3 号04宫廷点心小吃 · 北京示例路 4 号05胡同小馆地方菜 · 北京示例路 5 号",
+    "resultName": "北京烤鸭",
+    "resultMeta": "北京 · 试试北京烤鸭 · 地方菜 · 北京示例路 1 号",
+    "resultPlaceId": "beijing-1",
+    "resultImage": "/food/beijing-peking-duck.jpg",
+    "placeMarkers": 5,
+    "cityMarkers": 9
+  },
+  "imageFallbackVisible": true,
+  "exploreClearedWithoutLunchMutation": true
+}

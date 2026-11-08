@@ -1,0 +1,27 @@
+[
+  {
+    "name": "exploration is isolated from lunch state and candidate preview clears it",
+    "status": "passed",
+    "durationMs": 988
+  },
+  {
+    "name": "candidate preview aborts an in-flight exploration request",
+    "status": "passed",
+    "durationMs": 2231
+  },
+  {
+    "name": "confirmation after exploration switches once and resets lunch state",
+    "status": "passed",
+    "durationMs": 1239
+  },
+  {
+    "name": "food image failure stays isolated while exploring",
+    "status": "passed",
+    "durationMs": 889
+  },
+  {
+    "name": "320px mobile completes explore, candidate confirm, and spin",
+    "status": "passed",
+    "durationMs": 1648
+  }
+]

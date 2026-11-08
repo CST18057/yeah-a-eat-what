@@ -33,6 +33,7 @@ npm ci --omit=dev
 npm test
 npm run install:browser
 npm run test:browser
+npm run test:cross-feature
 git diff --check
 ```
 
@@ -42,6 +43,7 @@ git diff --check
 - `npm ci --omit=dev`: passed without invoking Playwright.
 - `npm test`: 24/24 passed.
 - `npm run test:browser`: 31/31 passed.
+- `npm run test:cross-feature`: 5/5 passed.
 - `git diff --check`: passed.
 
 Browser scenarios:
@@ -77,6 +79,18 @@ Browser scenarios:
 29. Pending spin is discarded after city change
 30. Food image failures keep the selected result and map binding
 31. Tile failure popup stays unobstructed on desktop and mobile
+
+Cross-feature fixture scenarios:
+
+1. Exploration keeps the lunch city, result, place list, and markers unchanged;
+   opening a candidate preview clears the exploration state.
+2. Opening a candidate preview aborts an in-flight exploration request and
+   prevents a late result from appearing.
+3. Confirming a candidate after exploration switches city once, refreshes
+   places once, resets the lunch result, and sends no extra explore request.
+4. Food-image fallback remains isolated while exploration loads and clears.
+5. A 320px mobile run completes spin, explore, candidate confirmation, and a
+   second spin without horizontal overflow.
 
 ## Evidence
 

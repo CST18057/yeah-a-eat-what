@@ -20,6 +20,7 @@ The server listens on `http://127.0.0.1:4173` by default. Override `PORT` or
 npm test
 npm run install:browser
 npm run test:browser
+npm run test:cross-feature
 git diff --check
 ```
 
@@ -38,6 +39,11 @@ browser's system libraries once with:
 npm run install:browser
 npx playwright install-deps chromium
 ```
+
+`npm run test:cross-feature` reuses the browser fixtures and focuses on
+cross-feature state boundaries: exploration versus lunch state, candidate
+preview cancellation of in-flight exploration, confirmation after exploration,
+food-image fallback isolation, and a complete 320px mobile path.
 
 ## API
 

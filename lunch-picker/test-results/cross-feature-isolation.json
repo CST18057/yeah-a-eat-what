@@ -1,0 +1,41 @@
+{
+  "baseline": {
+    "cityId": "beijing",
+    "placesText": "01北京烤鸭地方菜 · 北京示例路 1 号02炸酱面馆小吃 · 北京示例路 2 号03铜锅涮肉地方菜 · 北京示例路 3 号04宫廷点心小吃 · 北京示例路 4 号05胡同小馆地方菜 · 北京示例路 5 号",
+    "resultName": "北京烤鸭",
+    "resultMeta": "北京 · 试试北京烤鸭 · 地方菜 · 北京示例路 1 号",
+    "resultPlaceId": "beijing-1",
+    "resultImage": "/food/beijing-peking-duck.jpg",
+    "placeMarkers": 5,
+    "cityMarkers": 9
+  },
+  "exploreReady": {
+    "hidden": false,
+    "status": "ready",
+    "requestId": "4",
+    "source": "network",
+    "limit": 40,
+    "total": 3,
+    "returned": 3,
+    "truncated": false,
+    "errorCode": "",
+    "retryAfterSeconds": null,
+    "bounds": {
+      "west": -12.88,
+      "south": -11.92,
+      "east": 12.88,
+      "north": 13.76
+    },
+    "cacheKey": "explore:v1:-12.88:-11.92:12.88:13.76:40",
+    "updatedAt": 1794125147915
+  },
+  "exploreRequests": [
+    {
+      "method": "GET",
+      "pathname": "/api/explore",
+      "url": "http://127.0.0.1:4318/api/explore?west=-12.88&south=-11.92&east=12.88&north=13.76&limit=40",
+      "body": ""
+    }
+  ],
+  "candidatePreviewClearedExplore": true
+}
