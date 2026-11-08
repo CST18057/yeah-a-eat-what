@@ -12,6 +12,7 @@ const {
   spinRegion,
   getExplorePlaces,
 } = require("./data");
+const { normalizeExclude } = require("./spin-selector");
 
 const PUBLIC_DIR = path.join(__dirname, "public");
 const LEAFLET_DIR = path.join(__dirname, "node_modules", "leaflet", "dist");
@@ -452,7 +453,18 @@ async function handleApi(req, res, url, options) {
       return true;
     }
 
-    sendJson(res, 200, spinRegion(regionIdFromBody));
+    let exclude = [];
+    try {
+      exclude = normalizeExclude(body.exclude);
+    } catch (error) {
+      throw new RequestError(
+        400,
+        "INVALID_SPIN_EXCLUDE",
+        error instanceof Error ? error.message : "exclude is invalid",
+      );
+    }
+
+    sendJson(res, 200, spinRegion(regionIdFromBody, Math.random, { exclude }));
     return true;
   }
 

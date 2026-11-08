@@ -28,6 +28,8 @@ Date: 2026-11-08
   browser installation is now an explicit test step.
 - Preserved city search, candidate preview, lunch selection, places, map
   gestures, request ordering, and failure behavior.
+- Consecutive spins exclude previously seen place/food identities on the server;
+  the client sends only observed identities and never replaces server randomness.
 
 ## Commands
 
@@ -48,7 +50,7 @@ git diff --check
 - `npm ci`: passed with 0 vulnerabilities.
 - `npm ci --omit=dev`: passed without invoking Playwright.
 - `npm test`: 26/26 passed.
-- `npm run test:browser`: 31/31 passed.
+- `npm run test:browser`: 32/32 passed.
 - `npm run test:cross-feature`: 7/7 passed.
 - `npm run audit:food-images`: 9 regions, 27 unique candidates and images.
 - `npm run verify:food-sources`: 27/27 Wikimedia Commons records matched.
@@ -87,6 +89,7 @@ Browser scenarios:
 29. Pending spin is discarded after city change
 30. Food image failures keep the selected result and map binding
 31. Tile failure popup stays unobstructed on desktop and mobile
+32. Consecutive spins avoid repeating place and food
 
 Cross-feature fixture scenarios:
 
@@ -121,6 +124,11 @@ Exploration state/network evidence is stored in `explore-explicit.json`,
 `explore-cache.json`, `explore-rate-limit.json`, `explore-timeout-error.json`,
 `explore-client-timeout.json`, and `explore-last-write.json`.
 Keyboard invalidation evidence is stored in `explore-keyboard.json`.
+Spin exclusion evidence is stored in `spin-exclusion-desktop.png` and
+`spin-exclusion-mobile.png`; requests record the submitted `exclude` identities.
+`npm run test:spin-real` validates the real server and catalog after the
+multi-food data provider is merged; it requires the first three Beijing results
+to differ in placeId, foodId, dish, and image.
 
 Food catalog evidence is stored in `food-catalog-audit.json`. It records all 27
 `foodId`, dish, local image, byte size, SHA-256, author, license, license URL,

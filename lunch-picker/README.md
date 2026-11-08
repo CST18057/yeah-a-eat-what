@@ -62,6 +62,13 @@ food-image fallback isolation, and a complete 320px mobile path.
 - `GET /api/regions` returns `{ regions: [...] }`.
 - `GET /api/regions/:id/places` returns `{ region, places }`.
 - `POST /api/spin` with `{ "regionId": "beijing" }` returns `{ region, place }`.
+- `POST /api/spin` also accepts an optional `exclude` array. Each hint may
+  contain `placeId`, `foodId`, `dish`, and/or `image`; matching candidates are
+  removed before the server random draw. `selection` reports whether the result
+  repeated because only one candidate exists or all candidates were excluded.
+  Spin candidates are the Cartesian product of each city's public places and
+  the region's `getFoodCandidatesForRegion()` food array, so adding food entries
+  does not require rebinding every place.
 - `GET /api/explore?west=&south=&east=&north=&limit=` returns the public places
   inside a bounded region.
 
@@ -146,6 +153,9 @@ place.
 - Region switching and random selection stay available when places are missing.
 - Only the latest city response can update the interface.
 - A pending spin is discarded if the user changes city before it returns.
+- Consecutive spins send the current city's previously seen place/food
+  identities. A different dish and image are selected until the candidate set is
+  exhausted; exhaustion is shown explicitly and starts a new cycle.
 - If map tiles fail, the fallback notice sits outside the map viewport so it
   cannot cover a place popup; markers and selection remain usable.
 - After a spin, the result card shows the selected place with its example food

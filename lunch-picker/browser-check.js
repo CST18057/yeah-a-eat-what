@@ -193,6 +193,7 @@ async function installApiRoutes(page, options = {}) {
     });
   });
 
+  let spinSequenceIndex = 0;
   await page.route("**/api/spin", async (route) => {
     const body = route.request().postDataJSON();
     const id = body.regionId;
@@ -200,6 +201,18 @@ async function installApiRoutes(page, options = {}) {
       await new Promise((resolve) => setTimeout(resolve, options.delaySpin));
     }
     const region = regionFixtures.find((item) => item.id === id);
+    if (options.spinSequence?.length) {
+      const configured =
+        options.spinSequence[
+          Math.min(spinSequenceIndex, options.spinSequence.length - 1)
+        ];
+      spinSequenceIndex += 1;
+      await routeJson(route, 200, {
+        region,
+        ...configured,
+      });
+      return;
+    }
     const places = placesFor(id);
     await routeJson(route, 200, {
       region,
@@ -819,6 +832,120 @@ const tests = [
         fullPage: true,
       });
       assert.deepEqual(pageErrors, []);
+      await context.close();
+    },
+  },
+  {
+    name: "consecutive spins avoid repeating place and food",
+    async run(browser) {
+      const places = placesFor("beijing");
+      const foodA = {
+        foodId: "beijing-duck-a",
+        dish: "北京烤鸭",
+        image: "/food/beijing-peking-duck.jpg",
+        alt: "北京烤鸭示例图片",
+        credit: "测试示例来源",
+        sourceUrl:
+          "https://commons.wikimedia.org/wiki/File:Peking_duck_with_sugar_scallion.jpg",
+        licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
+      };
+      const foodB = {
+        foodId: "beijing-noodle-b",
+        dish: "炸酱面",
+        image: "/food/shanghai-xiaolongbao.jpg",
+        alt: "炸酱面示例图片",
+        credit: "测试示例来源",
+        sourceUrl:
+          "https://commons.wikimedia.org/wiki/File:Xiao_Long_Bao_by_Junhao!.jpg",
+        licenseUrl: "https://creativecommons.org/licenses/by/2.0/",
+      };
+      const selected = [
+        {
+          place: { ...places[0], food: foodA },
+          selection: {
+            repeated: false,
+            repeatReason: null,
+            totalCandidates: 2,
+            eligibleCandidates: 2,
+            excludedCandidates: 0,
+          },
+        },
+        {
+          place: { ...places[1], food: foodB },
+          selection: {
+            repeated: false,
+            repeatReason: null,
+            totalCandidates: 2,
+            eligibleCandidates: 1,
+            excludedCandidates: 1,
+          },
+        },
+        {
+          place: { ...places[0], food: foodA },
+          selection: {
+            repeated: true,
+            repeatReason: "ALL_CANDIDATES_EXCLUDED",
+            totalCandidates: 2,
+            eligibleCandidates: 0,
+            excludedCandidates: 2,
+          },
+        },
+      ];
+      const sequence = [...selected, ...selected];
+      const { context, page, pageErrors, apiRequests } = await openPage(
+        browser,
+        { width: 1280, height: 900 },
+        { spinSequence: sequence },
+      );
+
+      async function playCycle(viewportName) {
+        await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+        await waitForCityReady(page);
+        await waitForMarkers(page);
+
+        await page.locator("#spin-button").click();
+        await page.waitForFunction(
+          () => document.querySelector("#result-name")?.textContent === "北京烤鸭",
+        );
+        const firstImage = await page.locator("#result-image").getAttribute("src");
+
+        await page.locator("#spin-button").click();
+        await page.waitForFunction(
+          () => document.querySelector("#result-name")?.textContent === "炸酱面馆",
+        );
+        const secondImage = await page.locator("#result-image").getAttribute("src");
+        assert.notEqual(firstImage, secondImage);
+
+        await page.locator("#spin-button").click();
+        await page.waitForFunction(() =>
+          document
+            .querySelector("#global-status")
+            ?.textContent.includes("可选美食已轮完"),
+        );
+
+        const spinRequests = apiRequests.filter(
+          (request) => request.pathname === "/api/spin",
+        );
+        const cycleRequests = spinRequests.slice(-3);
+        assert.equal(cycleRequests.length, 3);
+        const bodies = cycleRequests.map((request) => JSON.parse(request.body));
+        assert.equal(bodies[0].exclude, undefined);
+        assert.equal(bodies[1].exclude.length, 1);
+        assert.equal(bodies[1].exclude[0].placeId, places[0].id);
+        assert.equal(bodies[1].exclude[0].foodId, foodA.foodId);
+        assert.equal(bodies[2].exclude.length, 2);
+        assert.equal(bodies[2].exclude[1].foodId, foodB.foodId);
+
+        await page.screenshot({
+          path: path.join(outputDir, `spin-exclusion-${viewportName}.png`),
+          fullPage: true,
+        });
+        assert.deepEqual(pageErrors, []);
+      }
+
+      await playCycle("desktop");
+      await page.setViewportSize({ width: 390, height: 844 });
+      await playCycle("mobile");
       await context.close();
     },
   },

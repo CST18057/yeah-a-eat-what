@@ -2,36 +2,36 @@
   {
     "name": "exploration is isolated from lunch state and candidate preview clears it",
     "status": "passed",
-    "durationMs": 1017
+    "durationMs": 1014
   },
   {
     "name": "candidate preview aborts an in-flight exploration request",
     "status": "passed",
-    "durationMs": 2255
+    "durationMs": 2252
   },
   {
     "name": "confirmation after exploration switches once and resets lunch state",
     "status": "passed",
-    "durationMs": 1289
+    "durationMs": 1285
   },
   {
     "name": "food image failure stays isolated while exploring",
     "status": "passed",
-    "durationMs": 904
+    "durationMs": 804
   },
   {
     "name": "320px mobile completes explore, candidate confirm, and spin",
     "status": "passed",
-    "durationMs": 1710
+    "durationMs": 1650
   },
   {
     "name": "keyboard panning invalidates a ready exploration result",
     "status": "passed",
-    "durationMs": 1779
+    "durationMs": 1775
   },
   {
     "name": "keyboard panning invalidates an in-flight exploration request",
     "status": "passed",
-    "durationMs": 2732
+    "durationMs": 2750
   }
 ]

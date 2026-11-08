@@ -12,6 +12,7 @@ const {
 } = require("./catalog/food-images");
 const { validateRegions } = require("./catalog/validate");
 const { spinRegion } = require("./data");
+const { selectSpinCandidate } = require("./spin-selector");
 const { createServer } = require("./server");
 
 let server;
@@ -302,6 +303,14 @@ test("POST /api/spin returns a place from the requested city", async () => {
   assert.equal(body.place.food.dish, "肉夹馍");
   assert.equal(body.place.food.image, "/food/xian-roujiamo.jpg");
   assert.equal(body.place.food.source.provider, "Wikimedia Commons");
+  assert.equal(body.selection.repeated, false);
+  assert.equal(body.selection.repeatReason, null);
+  assert.ok(body.selection.totalCandidates >= 5);
+  assert.equal(
+    body.selection.eligibleCandidates,
+    body.selection.totalCandidates,
+  );
+  assert.equal(body.selection.excludedCandidates, 0);
 });
 
 test("spin selection is deterministic for an injected random source", () => {
@@ -310,6 +319,43 @@ test("spin selection is deterministic for an injected random source", () => {
   assert.equal(spinRegion("tokyo", () => 0).place.id, "tokyo-tsukiji-outer-market");
   assert.equal(spinRegion("new-york", () => 0.999).place.id, "new-york-brooklyn-borough-hall-greenmarket");
   assert.equal(spinRegion("missing"), null);
+});
+
+test("spin selection skips excluded place and food identities", () => {
+  const places = [
+    {
+      id: "one",
+      food: { foodId: "duck", dish: "北京烤鸭", image: "/food/duck.jpg" },
+    },
+    {
+      id: "two",
+      food: { foodId: "noodle", dish: "炸酱面", image: "/food/noodle.jpg" },
+    },
+    {
+      id: "three",
+      food: { foodId: "duck", dish: "北京烤鸭", image: "/food/duck.jpg" },
+    },
+  ];
+
+  const next = selectSpinCandidate(places, () => 0, [
+    { placeId: "one", foodId: "duck", dish: "北京烤鸭", image: "/food/duck.jpg" },
+  ]);
+  assert.equal(next.place.id, "two");
+  assert.equal(next.selection.repeated, false);
+  assert.equal(next.selection.eligibleCandidates, 1);
+
+  const exhausted = selectSpinCandidate(places, () => 0, [
+    { placeId: "one", foodId: "duck" },
+    { placeId: "two", foodId: "noodle" },
+  ]);
+  assert.equal(exhausted.selection.repeated, true);
+  assert.equal(exhausted.selection.repeatReason, "ALL_CANDIDATES_EXCLUDED");
+
+  const single = selectSpinCandidate(places.slice(0, 1), () => 0, [
+    { placeId: "one" },
+  ]);
+  assert.equal(single.selection.repeated, true);
+  assert.equal(single.selection.repeatReason, "SINGLE_CANDIDATE");
 });
 
 test("POST /api/spin validates its JSON body", async () => {
@@ -338,6 +384,19 @@ test("POST /api/spin rejects oversized JSON bodies", async () => {
   });
   assert.equal(oversized.response.status, 413);
   assert.equal(oversized.body.error.code, "BODY_TOO_LARGE");
+});
+
+test("POST /api/spin rejects malformed exclusion hints", async () => {
+  const { response, body } = await jsonRequest("/api/spin", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      regionId: "beijing",
+      exclude: [{ placeId: 12 }],
+    }),
+  });
+  assert.equal(response.status, 400);
+  assert.equal(body.error.code, "INVALID_SPIN_EXCLUDE");
 });
 
 test("API methods and routes fail predictably", async () => {

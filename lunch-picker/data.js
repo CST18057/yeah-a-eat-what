@@ -1,12 +1,15 @@
 "use strict";
 
 const cities = require("./catalog/cities");
+const foodCatalog = require("./catalog/food-images");
 const {
   FOOD_PROVIDERS,
   getFoodForRegion,
+  getFoodCandidatesForRegion,
   validateFoodProviders,
-} = require("./catalog/food-images");
+} = foodCatalog;
 const { validateRegions } = require("./catalog/validate");
+const { selectSpinCandidate } = require("./spin-selector");
 
 const regions = validateRegions(cities);
 validateFoodProviders(FOOD_PROVIDERS, regions.map((region) => region.id));
@@ -55,19 +58,29 @@ function getPlacesByRegionId(regionId) {
   };
 }
 
-function spinRegion(regionId, random = Math.random) {
+function spinRegion(regionId, random = Math.random, options = {}) {
   const region = regionById.get(regionId);
   if (!region) {
     return null;
   }
 
-  const sample = Number(random());
-  const normalized = Number.isFinite(sample) ? Math.min(Math.max(sample, 0), 1) : 0;
-  const index = Math.min(Math.floor(normalized * region.places.length), region.places.length - 1);
+  const foods = getFoodCandidatesForRegion(region.id);
+  const candidates = [];
+  for (const place of region.places) {
+    for (const food of foods) {
+      candidates.push({ ...place, food: clone(food) });
+    }
+  }
+  const selected = selectSpinCandidate(
+    candidates,
+    random,
+    options.exclude || [],
+  );
 
   return {
     region: publicRegion(region),
-    place: placeWithFood(region, region.places[index]),
+    place: selected.place ? clone(selected.place) : null,
+    selection: selected.selection,
   };
 }
 

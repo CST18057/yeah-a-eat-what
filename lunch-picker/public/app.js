@@ -67,6 +67,7 @@
     tileLayer: null,
     cityRequestId: 0,
     spinRequestId: 0,
+    spinExclude: [],
     placesError: "",
     mapUnavailable: "",
     tileUnavailable: false,
@@ -251,6 +252,7 @@
       food: food.image
         ? {
             dish: String(food.dish ?? "地方美食"),
+            foodId: String(food.foodId ?? ""),
             image: String(food.image),
             alt: String(food.alt ?? `${food.dish ?? "地方美食"}示例图片`),
             credit: String(food.credit ?? "来源信息待补充"),
@@ -1421,6 +1423,42 @@
     appendFoodCredit(resultImageCredit, place.food);
   }
 
+  function spinIdentity(place) {
+    return {
+      placeId: place.id,
+      ...(place.food?.foodId ? { foodId: place.food.foodId } : {}),
+      ...(place.food?.dish ? { dish: place.food.dish } : {}),
+      ...(place.food?.image ? { image: place.food.image } : {}),
+    };
+  }
+
+  function rememberSpinCandidate(place, selection) {
+    const identity = spinIdentity(place);
+    if (selection?.repeated) {
+      state.spinExclude = [identity];
+      return;
+    }
+
+    const key = [
+      identity.placeId,
+      identity.foodId || "",
+      identity.dish || "",
+      identity.image || "",
+    ].join("\u0000");
+    const exists = state.spinExclude.some(
+      (item) =>
+        [
+          item.placeId,
+          item.foodId || "",
+          item.dish || "",
+          item.image || "",
+        ].join("\u0000") === key,
+    );
+    if (!exists) {
+      state.spinExclude.push(identity);
+    }
+  }
+
   function clearPlacesList(message) {
     placesList.replaceChildren();
     if (message) {
@@ -1484,6 +1522,7 @@
 
     const requestId = ++state.cityRequestId;
     state.spinRequestId += 1;
+    state.spinExclude = [];
     spinButton.disabled = false;
     spinButton.removeAttribute("aria-busy");
     state.currentRegion = region;
@@ -1586,7 +1625,10 @@
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ regionId }),
+        body: JSON.stringify({
+          regionId,
+          ...(state.spinExclude.length ? { exclude: state.spinExclude } : {}),
+        }),
       });
 
       if (
@@ -1599,6 +1641,7 @@
       const data = unwrap(payload);
       const rawPlace = data && data.place ? data.place : data;
       const place = normalizePlace(rawPlace, 0);
+      const selection = data?.selection || null;
 
       if (!place.name || place.name === "未命名地点") {
         throw new Error("Spin response did not include a place");
@@ -1607,12 +1650,24 @@
       const foodMeta = place.food
         ? `试试${place.food.dish} · ${place.detail}`
         : place.detail;
-      renderResult(place.name, `${spinningRegion.name} · ${foodMeta}`, place);
+      rememberSpinCandidate(place, selection);
+      const repeatMeta = selection?.repeated
+        ? selection.repeatReason === "SINGLE_CANDIDATE"
+          ? "当前城市仅有一个美食示例"
+          : "可选美食已轮完，重新开始本轮示例"
+        : "";
+      renderResult(
+        place.name,
+        `${spinningRegion.name} · ${foodMeta}${repeatMeta ? ` · ${repeatMeta}` : ""}`,
+        place,
+      );
       setStatus(
         globalStatus,
-        place.food
-          ? `这顿去 ${place.name}，试试${place.food.dish}。图片为示例，不代表实际门店。`
-          : `这顿去 ${place.name}。`,
+        repeatMeta
+          ? `${repeatMeta}。`
+          : place.food
+            ? `这顿去 ${place.name}，试试${place.food.dish}。图片为示例，不代表实际门店。`
+            : `这顿去 ${place.name}。`,
       );
       openPlace(place);
     } catch (error) {
