@@ -7,6 +7,8 @@ real available merchant.
 | File | Dish | Author | License | Source |
 | --- | --- | --- | --- | --- |
 | `beijing-peking-duck.jpg` | 北京烤鸭 | Mcyjerry | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Peking_duck_with_sugar_scallion.jpg) |
+| `beijing-zhajiangmian.jpg` | 炸酱面 | N509FZ | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Noodles_with_diced_meat_soybean_paste_before_stirring_(20210102181759).jpg) |
+| `beijing-jianbing.jpg` | 煎饼 | Alwaleed Khaled | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Jianbing_on_plate.jpg) |
 | `shanghai-xiaolongbao.jpg` | 小笼包 | Junhao! | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Xiao_Long_Bao_by_Junhao!.jpg) |
 | `guangzhou-dim-sum.jpg` | 广式点心 | afterdog | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Dim_Sum_Breakfast.jpg) |
 | `chengdu-hotpot.jpg` | 四川火锅 | Fumikas Sagisavas | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Sichuan-style_hotpot.jpg) |

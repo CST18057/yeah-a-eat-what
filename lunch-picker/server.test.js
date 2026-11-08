@@ -3,7 +3,12 @@
 const assert = require("node:assert/strict");
 const { after, before, test } = require("node:test");
 const cities = require("./catalog/cities");
-const { getFoodForRegion } = require("./catalog/food-images");
+const {
+  FOOD_PROVIDERS,
+  getFoodCandidatesForRegion,
+  getFoodForRegion,
+  getFoodProvider,
+} = require("./catalog/food-images");
 const { validateRegions } = require("./catalog/validate");
 const { spinRegion } = require("./data");
 const { createServer } = require("./server");
@@ -96,26 +101,54 @@ test("catalog validation rejects an empty city", () => {
   );
 });
 
-test("every city has a licensed local food example image", async () => {
-  for (const city of cities) {
-    const food = getFoodForRegion(city.id);
-    assert.ok(food, `missing food example for ${city.id}`);
-    assert.match(food.image, /^\/food\/[a-z0-9-]+\.jpg$/);
-    assert.ok(food.alt.length > 0);
-    assert.ok(food.credit.length > 0);
-    assert.equal(food.source.provider, "Wikimedia Commons");
-    assert.ok(
-      food.source.url.startsWith("https://commons.wikimedia.org/wiki/File:"),
-    );
-    assert.match(
-      food.source.licenseUrl,
-      /^https:\/\/creativecommons\.org\/(licenses|publicdomain)\//,
-    );
+test("food catalog uses normalized provider arrays", () => {
+  assert.equal(FOOD_PROVIDERS.length, 1);
 
-    const image = await fetch(`${baseUrl}${food.image}`);
-    assert.equal(image.status, 200);
-    assert.equal(image.headers.get("content-type"), "image/jpeg");
-    assert.ok(Number(image.headers.get("content-length")) > 10000);
+  const provider = getFoodProvider("wikimedia-commons");
+  assert.ok(provider);
+  assert.equal(provider.name, "Wikimedia Commons");
+
+  const beijingFoods = getFoodCandidatesForRegion("beijing");
+  assert.equal(beijingFoods.length, 3);
+  assert.equal(new Set(beijingFoods.map((food) => food.foodId)).size, 3);
+  assert.equal(new Set(beijingFoods.map((food) => food.dish)).size, 3);
+  assert.equal(new Set(beijingFoods.map((food) => food.image)).size, 3);
+  assert.equal(getFoodForRegion("beijing"), beijingFoods[0]);
+  assert.ok(Object.isFrozen(beijingFoods));
+
+  for (const city of cities) {
+    const foods = getFoodCandidatesForRegion(city.id);
+    assert.ok(foods.length >= 1, `missing food candidates for ${city.id}`);
+
+    for (const food of foods) {
+      assert.match(food.foodId, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+      assert.equal(food.regionId, city.id);
+      assert.equal(food.providerId, provider.id);
+      assert.equal(food.source.providerId, provider.id);
+      assert.equal(food.source.provider, provider.name);
+      assert.ok(food.dish.length > 0);
+      assert.ok(food.alt.length > 0);
+      assert.ok(food.credit.includes("resized"));
+      assert.match(food.image, /^\/food\/[a-z0-9-]+\.jpg$/);
+      assert.ok(
+        food.source.url.startsWith("https://commons.wikimedia.org/wiki/File:"),
+      );
+      assert.match(
+        food.source.licenseUrl,
+        /^https:\/\/creativecommons\.org\/(licenses|publicdomain)\//,
+      );
+    }
+  }
+});
+
+test("every bundled food example has a licensed local image", async () => {
+  for (const city of cities) {
+    for (const food of getFoodCandidatesForRegion(city.id)) {
+      const image = await fetch(`${baseUrl}${food.image}`);
+      assert.equal(image.status, 200);
+      assert.equal(image.headers.get("content-type"), "image/jpeg");
+      assert.ok(Number(image.headers.get("content-length")) > 10000);
+    }
   }
 });
 
