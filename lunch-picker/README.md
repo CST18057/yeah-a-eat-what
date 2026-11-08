@@ -19,6 +19,7 @@ The server listens on `http://127.0.0.1:4173` by default. Override `PORT` or
 ```bash
 npm test
 npm run audit:food-images
+npm run verify:food-sources
 npm run install:browser
 npm run test:browser
 npm run test:cross-feature
@@ -33,6 +34,9 @@ suite covers desktop and mobile flows, cross-continent map browsing, city search
 normalization, candidate preview/confirm/cancel, request ordering, places
 failure cleanup, explicit region exploration, cache/error states,
 pending-spin invalidation, and tile-failure fallbacks.
+
+`npm run verify:food-sources` performs a manual network check against the
+Wikimedia Commons API and compares every stored author, license, and license URL.
 
 `npm run test:cross-feature` reuses the browser fixtures and focuses on
 cross-feature state boundaries: exploration versus lunch state, candidate

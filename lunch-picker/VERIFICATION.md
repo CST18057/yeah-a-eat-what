@@ -36,6 +36,7 @@ npm ci
 npm ci --omit=dev
 npm test
 npm run audit:food-images
+npm run verify:food-sources
 npm run install:browser
 npm run test:browser
 npm run test:cross-feature
@@ -50,6 +51,7 @@ git diff --check
 - `npm run test:browser`: 31/31 passed.
 - `npm run test:cross-feature`: 7/7 passed.
 - `npm run audit:food-images`: 9 regions, 27 unique candidates and images.
+- `npm run verify:food-sources`: 27/27 Wikimedia Commons records matched.
 - `git diff --check`: passed.
 
 Browser scenarios:

@@ -1,0 +1,468 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-11-08T09:42:19.264Z",
+  "provider": "Wikimedia Commons API",
+  "checked": 27,
+  "mismatches": [],
+  "records": [
+    {
+      "regionId": "beijing",
+      "foodId": "beijing-peking-duck",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Peking_duck_with_sugar_scallion.jpg",
+      "commonsTitle": "File:Peking duck with sugar scallion.jpg",
+      "expected": {
+        "author": "Mcyjerry",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "actual": {
+        "author": "Mcyjerry",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "beijing",
+      "foodId": "beijing-zhajiangmian",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Noodles_with_diced_meat_soybean_paste_before_stirring_(20210102181759).jpg",
+      "commonsTitle": "File:Noodles with diced meat soybean paste before stirring (20210102181759).jpg",
+      "expected": {
+        "author": "N509FZ",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "actual": {
+        "author": "N509FZ",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "beijing",
+      "foodId": "beijing-jianbing",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Jianbing_on_plate.jpg",
+      "commonsTitle": "File:Jianbing on plate.jpg",
+      "expected": {
+        "author": "Alwaleed Khaled",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+      },
+      "actual": {
+        "author": "Alwaleed Khaled",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "shanghai",
+      "foodId": "shanghai-xiaolongbao",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Xiao_Long_Bao_by_Junhao!.jpg",
+      "commonsTitle": "File:Xiao Long Bao by Junhao!.jpg",
+      "expected": {
+        "author": "Junhao!",
+        "license": "CC BY 2.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.0/"
+      },
+      "actual": {
+        "author": "Junhao!",
+        "license": "CC BY 2.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "shanghai",
+      "foodId": "shanghai-shengjian",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Shengjian_mantou.jpg",
+      "commonsTitle": "File:Shengjian mantou.jpg",
+      "expected": {
+        "author": "Pauloleong2002",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "actual": {
+        "author": "Pauloleong2002",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "shanghai",
+      "foodId": "shanghai-scallion-noodles",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E8%91%B1%E8%8A%B1%E8%91%B1%E6%B2%B9%E6%8B%8C%E9%9D%A2.jpg",
+      "commonsTitle": "File:葱花葱油拌面.jpg",
+      "expected": {
+        "author": "Suginami",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "actual": {
+        "author": "Suginami",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "guangzhou",
+      "foodId": "guangzhou-dim-sum",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dim_Sum_Breakfast.jpg",
+      "commonsTitle": "File:Dim Sum Breakfast.jpg",
+      "expected": {
+        "author": "afterdog",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "actual": {
+        "author": "afterdog",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "guangzhou",
+      "foodId": "guangzhou-white-cut-chicken",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:BeiQieJi-WhiteCutChicken.jpg",
+      "commonsTitle": "File:BeiQieJi-WhiteCutChicken.jpg",
+      "expected": {
+        "author": "Sjschen",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/"
+      },
+      "actual": {
+        "author": "Sjschen",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "guangzhou",
+      "foodId": "guangzhou-char-siu",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Charsiu.jpg",
+      "commonsTitle": "File:Charsiu.jpg",
+      "expected": {
+        "author": "Simon Shek",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/"
+      },
+      "actual": {
+        "author": "Simon Shek",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "chengdu",
+      "foodId": "chengdu-hotpot",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sichuan-style_hotpot.jpg",
+      "commonsTitle": "File:Sichuan-style hotpot.jpg",
+      "expected": {
+        "author": "Fumikas Sagisavas",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "actual": {
+        "author": "Fumikas Sagisavas",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "chengdu",
+      "foodId": "chengdu-dandan-noodles",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dan_Dan_Noodles.jpg",
+      "commonsTitle": "File:Dan Dan Noodles.jpg",
+      "expected": {
+        "author": "Fumikas Sagisavas",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "actual": {
+        "author": "Fumikas Sagisavas",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "chengdu",
+      "foodId": "chengdu-red-oil-wontons",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Red_Oil_Wontons_(%E7%BA%A2%E6%B2%B9%E6%8A%84%E6%89%8B).jpg",
+      "commonsTitle": "File:Red Oil Wontons (红油抄手).jpg",
+      "expected": {
+        "author": "NeoBatfreak",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "actual": {
+        "author": "NeoBatfreak",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "xian",
+      "foodId": "xian-roujiamo",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Roujiamo_and_Laoling_Laodoufu.jpg",
+      "commonsTitle": "File:Roujiamo and Laoling Laodoufu.jpg",
+      "expected": {
+        "author": "Suginami",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "actual": {
+        "author": "Suginami",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "xian",
+      "foodId": "xian-liangpi",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:LIANG_PI.jpg",
+      "commonsTitle": "File:LIANG PI.jpg",
+      "expected": {
+        "author": "Jucember",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/"
+      },
+      "actual": {
+        "author": "Jucember",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "xian",
+      "foodId": "xian-yangrou-paomo",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Yangrou_Paomo.JPG",
+      "commonsTitle": "File:Yangrou Paomo.JPG",
+      "expected": {
+        "author": "Danielinblue",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/"
+      },
+      "actual": {
+        "author": "Danielinblue",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "tokyo",
+      "foodId": "tokyo-sushi",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sushi_Plate_in_Organic_Sushi_Prague_4.jpg",
+      "commonsTitle": "File:Sushi Plate in Organic Sushi Prague 4.jpg",
+      "expected": {
+        "author": "Mojmir Churavy",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "actual": {
+        "author": "Mojmir Churavy",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "tokyo",
+      "foodId": "tokyo-ramen",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Soy_Milk_Ramen_and_Tonkotsu_Miso_Ramen_by_Goemon_Ramen_Bar.jpg",
+      "commonsTitle": "File:Soy Milk Ramen and Tonkotsu Miso Ramen by Goemon Ramen Bar.jpg",
+      "expected": {
+        "author": "Andy Li",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "actual": {
+        "author": "Andy Li",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "tokyo",
+      "foodId": "tokyo-tempura",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Maitake_Mushroom_Tempura_2021_Grifola_frondosa_%E8%88%9E%E8%8C%B8%E3%81%AE%E5%A4%A9%E3%81%B7%E3%82%89.jpg",
+      "commonsTitle": "File:Maitake Mushroom Tempura 2021 Grifola frondosa 舞茸の天ぷら.jpg",
+      "expected": {
+        "author": "ウィキ太郎(WikiTaro)",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "actual": {
+        "author": "ウィキ太郎(WikiTaro)",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "singapore",
+      "foodId": "singapore-laksa",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Noo.Meat_Laksa_-_Noo.Me_2024-12-02.jpg",
+      "commonsTitle": "File:Noo.Meat Laksa - Noo.Me 2024-12-02.jpg",
+      "expected": {
+        "author": "Andy Li",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "actual": {
+        "author": "Andy Li",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "singapore",
+      "foodId": "singapore-hainanese-chicken-rice",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Hainanese_chicken_rice_in_Singapore.jpg",
+      "commonsTitle": "File:Hainanese chicken rice in Singapore.jpg",
+      "expected": {
+        "author": "Pauloleong2002",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "actual": {
+        "author": "Pauloleong2002",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "singapore",
+      "foodId": "singapore-chili-crab",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Chili_crab_zz.jpg",
+      "commonsTitle": "File:Chili crab zz.jpg",
+      "expected": {
+        "author": "chensiyuan",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/"
+      },
+      "actual": {
+        "author": "chensiyuan",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "berlin",
+      "foodId": "berlin-currywurst",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Currywurst_2019.jpg",
+      "commonsTitle": "File:Currywurst 2019.jpg",
+      "expected": {
+        "author": "Jrcraft Yt",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "actual": {
+        "author": "Jrcraft Yt",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "berlin",
+      "foodId": "berlin-doner-kebab",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:D%C3%B6ner_Kebab,_Berlin,_2010_(01).jpg",
+      "commonsTitle": "File:Döner Kebab, Berlin, 2010 (01).jpg",
+      "expected": {
+        "author": "AleGranholm",
+        "license": "CC BY 2.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.0/"
+      },
+      "actual": {
+        "author": "AleGranholm",
+        "license": "CC BY 2.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "berlin",
+      "foodId": "berlin-berliner-pfannkuchen",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Berliner_Pfannkuchen_5.jpg",
+      "commonsTitle": "File:Berliner Pfannkuchen 5.jpg",
+      "expected": {
+        "author": "Sebastian Koppehel",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+      },
+      "actual": {
+        "author": "Sebastian Koppehel",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "new-york",
+      "foodId": "new-york-bagel",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Montreal_bagel_with_lox.jpg",
+      "commonsTitle": "File:Montreal bagel with lox.jpg",
+      "expected": {
+        "author": "Funknendai",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "actual": {
+        "author": "Funknendai",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "new-york",
+      "foodId": "new-york-pizza",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:New_York_Style_Pizza_New_Park.jpg",
+      "commonsTitle": "File:New York Style Pizza New Park.jpg",
+      "expected": {
+        "author": "Wil540 art",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "actual": {
+        "author": "Wil540 art",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "match": true
+    },
+    {
+      "regionId": "new-york",
+      "foodId": "new-york-cheesecake",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:New_York_cheesecake_3.jpg",
+      "commonsTitle": "File:New York cheesecake 3.jpg",
+      "expected": {
+        "author": "Muago",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "actual": {
+        "author": "Muago",
+        "license": "CC0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "match": true
+    }
+  ]
+}

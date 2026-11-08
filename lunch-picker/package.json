@@ -9,7 +9,8 @@
     "test:browser": "node browser-check.js",
     "install:browser": "playwright install chromium",
     "test:cross-feature": "node cross-feature-check.js",
-    "audit:food-images": "node catalog/audit-food-images.js"
+    "audit:food-images": "node catalog/audit-food-images.js",
+    "verify:food-sources": "node catalog/verify-food-sources.js"
   },
   "dependencies": {
     "leaflet": "1.9.4"
