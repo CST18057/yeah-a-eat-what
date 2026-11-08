@@ -502,6 +502,18 @@ select:disabled {
   text-align: right;
 }
 
+.food-credit-text {
+  overflow-wrap: anywhere;
+}
+
+.food-credit-links {
+  white-space: nowrap;
+}
+
+.result-media-caption .food-credit-links a {
+  color: var(--citrus);
+}
+
 .result-name {
   min-height: 34px;
   margin: 20px 0 7px;
@@ -925,6 +937,12 @@ select:disabled {
   line-height: 1.6;
 }
 
+.source-note a {
+  color: var(--forest);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .leaflet-container {
   font-family: inherit;
   background: #dceaf0;
@@ -1023,6 +1041,12 @@ select:disabled {
   color: var(--muted);
   font-size: 9px;
   line-height: 1.4;
+}
+
+.popup-food-caption a {
+  color: var(--forest);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .lunch-marker {

@@ -162,6 +162,58 @@
     return null;
   }
 
+  function normalizeHttpsUrl(value) {
+    if (!value) {
+      return "";
+    }
+
+    try {
+      const url = new URL(String(value));
+      return url.protocol === "https:" ? url.href : "";
+    } catch {
+      return "";
+    }
+  }
+
+  function appendFoodCreditLinks(container, food) {
+    const links = [];
+    const sourceUrl = normalizeHttpsUrl(food.sourceUrl);
+    const licenseUrl = normalizeHttpsUrl(food.licenseUrl);
+
+    if (sourceUrl) {
+      links.push({ href: sourceUrl, label: "素材页" });
+    }
+    if (licenseUrl) {
+      links.push({ href: licenseUrl, label: "许可证" });
+    }
+    if (!links.length) {
+      return;
+    }
+
+    const wrapper = document.createElement("span");
+    wrapper.className = "food-credit-links";
+    links.forEach(({ href, label }, index) => {
+      if (index > 0) {
+        wrapper.append(document.createTextNode(" · "));
+      }
+      const link = document.createElement("a");
+      link.href = href;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = label;
+      wrapper.append(link);
+    });
+    container.append(document.createTextNode(" · "), wrapper);
+  }
+
+  function appendFoodCredit(container, food, prefix = "") {
+    const credit = document.createElement("span");
+    credit.className = "food-credit-text";
+    credit.textContent = `${prefix}${food.credit}`;
+    container.append(credit);
+    appendFoodCreditLinks(container, food);
+  }
+
   function normalizeRegion(region, index) {
     const id = String(region.id ?? region.slug ?? region.key ?? index);
     return {
@@ -202,6 +254,10 @@
             image: String(food.image),
             alt: String(food.alt ?? `${food.dish ?? "地方美食"}示例图片`),
             credit: String(food.credit ?? "来源信息待补充"),
+            sourceUrl: normalizeHttpsUrl(food.source?.url ?? food.sourceUrl),
+            licenseUrl: normalizeHttpsUrl(
+              food.source?.licenseUrl ?? food.licenseUrl,
+            ),
           }
         : null,
     };
@@ -510,7 +566,10 @@
       fallback.textContent = "美食图片暂不可用";
       fallback.hidden = true;
       caption.className = "popup-food-caption";
-      caption.textContent = `${place.food.dish} · 示例图片 · ${place.food.credit}`;
+      caption.append(
+        document.createTextNode(`${place.food.dish} · 示例图片 · `),
+      );
+      appendFoodCredit(caption, place.food);
       image.addEventListener("error", () => {
         image.hidden = true;
         fallback.hidden = false;
@@ -1358,7 +1417,8 @@
     resultImageFallback.hidden = true;
     resultImage.src = place.food.image;
     resultImage.alt = place.food.alt;
-    resultImageCredit.textContent = place.food.credit;
+    resultImageCredit.replaceChildren();
+    appendFoodCredit(resultImageCredit, place.food);
   }
 
   function clearPlacesList(message) {

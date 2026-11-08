@@ -7,7 +7,7 @@
     "start": "node server.js",
     "test": "node --test server.test.js",
     "test:browser": "node browser-check.js",
-    "postinstall": "playwright install chromium"
+    "install:browser": "playwright install chromium"
   },
   "dependencies": {
     "leaflet": "1.9.4"

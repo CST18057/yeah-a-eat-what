@@ -18,6 +18,10 @@ Date: 2026-11-08
   timeout, and error states with retry and clear actions.
 - Keyboard map navigation now invalidates committed and in-flight exploration
   results without treating programmatic world-view changes as user movement.
+- Added visible OpenStreetMap contributor and ODbL attribution with license
+  links, plus food-image source and Creative Commons license links.
+- Removed the development-only browser download from production `postinstall`;
+  browser installation is now an explicit test step.
 - Preserved city search, candidate preview, lunch selection, places, map
   gestures, request ordering, and failure behavior.
 
@@ -25,7 +29,9 @@ Date: 2026-11-08
 
 ```bash
 npm ci
+npm ci --omit=dev
 npm test
+npm run install:browser
 npm run test:browser
 git diff --check
 ```
@@ -33,6 +39,7 @@ git diff --check
 ## Results
 
 - `npm ci`: passed with 0 vulnerabilities.
+- `npm ci --omit=dev`: passed without invoking Playwright.
 - `npm test`: 24/24 passed.
 - `npm run test:browser`: 31/31 passed.
 - `git diff --check`: passed.

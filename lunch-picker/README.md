@@ -18,6 +18,7 @@ The server listens on `http://127.0.0.1:4173` by default. Override `PORT` or
 
 ```bash
 npm test
+npm run install:browser
 npm run test:browser
 git diff --check
 ```
@@ -29,10 +30,12 @@ normalization, candidate preview/confirm/cancel, request ordering, places
 failure cleanup, explicit region exploration, cache/error states,
 pending-spin invalidation, and tile-failure fallbacks.
 
-Playwright downloads Chromium during `npm ci`. On a minimal Linux host, install
-the browser's system libraries once with:
+Browser downloads are explicit so production installs do not execute a
+development-only postinstall step. On a minimal Linux host, install the
+browser's system libraries once with:
 
 ```bash
+npm run install:browser
 npx playwright install-deps chromium
 ```
 
@@ -45,7 +48,8 @@ npx playwright install-deps chromium
   inside a bounded region.
 
 Each place includes a `food` object with a display dish, local image path,
-descriptive alt text, credit text, and Wikimedia Commons source metadata.
+descriptive alt text, credit text, Wikimedia Commons source URL, and the
+corresponding Creative Commons license URL.
 
 Unknown cities return HTTP 404 with `error.code = "REGION_NOT_FOUND"`. Invalid
 JSON returns HTTP 400, and request bodies are limited to 16 KiB.
@@ -66,6 +70,11 @@ Berlin 4, and New York 5, alongside the original Chinese cities. Coordinates,
 OpenStreetMap identifiers, and source URLs are stored with every city and place.
 These entries are public examples for inspiration; they are not merchant
 listings or a real-time availability feed.
+
+Place data is © OpenStreetMap contributors and is available under the
+[Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/1-0/).
+See [OpenStreetMap copyright](https://www.openstreetmap.org/copyright) for the
+required attribution terms. These notices are also visible in the application.
 
 The nine bundled food images are example photography, not photos of the
 selected public place or claims about a real merchant. Source and license

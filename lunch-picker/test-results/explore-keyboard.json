@@ -20,7 +20,7 @@
       {
         "method": "GET",
         "pathname": "/api/explore",
-        "url": "http://127.0.0.1:4317/api/explore?west=-12.88&south=-11.92&east=12.88&north=13.76&limit=40",
+        "url": "http://127.0.0.1:4174/api/explore?west=-12.88&south=-11.92&east=12.88&north=13.76&limit=40",
         "body": ""
       }
     ]

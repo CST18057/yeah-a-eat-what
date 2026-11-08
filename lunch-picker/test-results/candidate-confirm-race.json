@@ -8,13 +8,13 @@
     {
       "method": "GET",
       "pathname": "/api/regions/tokyo/places",
-      "url": "http://127.0.0.1:4317/api/regions/tokyo/places",
+      "url": "http://127.0.0.1:4174/api/regions/tokyo/places",
       "body": ""
     },
     {
       "method": "GET",
       "pathname": "/api/regions/singapore/places",
-      "url": "http://127.0.0.1:4317/api/regions/singapore/places",
+      "url": "http://127.0.0.1:4174/api/regions/singapore/places",
       "body": ""
     }
   ]

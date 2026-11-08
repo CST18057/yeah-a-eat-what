@@ -44,54 +44,79 @@ const foodByRegion = {
     image: "/food/beijing-peking-duck.jpg",
     alt: "盘中片好的北京烤鸭示例图片",
     credit: "Wikimedia Commons · CC BY-SA 4.0 · Mcyjerry",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Peking_duck_with_sugar_scallion.jpg",
+    licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
   },
   shanghai: {
     dish: "小笼包",
     image: "/food/shanghai-xiaolongbao.jpg",
     alt: "蒸笼里的小笼包示例图片",
     credit: "Wikimedia Commons · CC BY 2.0 · Junhao!",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Xiao_Long_Bao_by_Junhao!.jpg",
+    licenseUrl: "https://creativecommons.org/licenses/by/2.0/",
   },
   guangzhou: {
     dish: "广式点心",
     image: "/food/guangzhou-dim-sum.jpg",
     alt: "摆满蒸笼的广式点心示例图片",
     credit: "Wikimedia Commons · CC0 · afterdog",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:Dim_Sum_Breakfast.jpg",
+    licenseUrl: "https://creativecommons.org/publicdomain/zero/1.0/",
   },
   chengdu: {
     dish: "四川火锅",
     image: "/food/chengdu-hotpot.jpg",
     alt: "红汤四川火锅与配菜示例图片",
     credit: "Wikimedia Commons · CC0 · Fumikas Sagisavas",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Sichuan-style_hotpot.jpg",
+    licenseUrl: "https://creativecommons.org/publicdomain/zero/1.0/",
   },
   xian: {
     dish: "肉夹馍",
     image: "/food/xian-roujiamo.jpg",
     alt: "肉夹馍与豆腐汤示例图片",
     credit: "Wikimedia Commons · CC0 · Suginami",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Roujiamo_and_Laoling_Laodoufu.jpg",
+    licenseUrl: "https://creativecommons.org/publicdomain/zero/1.0/",
   },
   tokyo: {
     dish: "寿司",
     image: "/food/tokyo-sushi.jpg",
     alt: "黑色餐盘上的寿司拼盘示例图片",
     credit: "Wikimedia Commons · CC0 · Mojmir Churavy",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Sushi_Plate_in_Organic_Sushi_Prague_4.jpg",
+    licenseUrl: "https://creativecommons.org/publicdomain/zero/1.0/",
   },
   singapore: {
     dish: "叻沙",
     image: "/food/singapore-laksa.jpg",
     alt: "一碗叻沙汤面示例图片",
     credit: "Wikimedia Commons · CC0 · Andy Li",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Noo.Meat_Laksa_-_Noo.Me_2024-12-02.jpg",
+    licenseUrl: "https://creativecommons.org/publicdomain/zero/1.0/",
   },
   berlin: {
     dish: "咖喱肠",
     image: "/food/berlin-currywurst.jpg",
     alt: "咖喱肠配薯条示例图片",
     credit: "Wikimedia Commons · CC0 · Jrcraft Yt",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:Currywurst_2019.jpg",
+    licenseUrl: "https://creativecommons.org/publicdomain/zero/1.0/",
   },
   "new-york": {
     dish: "贝果",
     image: "/food/new-york-bagel.jpg",
     alt: "夹烟熏三文鱼的芝麻贝果示例图片",
     credit: "Wikimedia Commons · CC0 · Funknendai",
+    sourceUrl:
+      "https://commons.wikimedia.org/wiki/File:Montreal_bagel_with_lox.jpg",
+    licenseUrl: "https://creativecommons.org/publicdomain/zero/1.0/",
   },
 };
 
@@ -609,6 +634,22 @@ const tests = [
       assert.match(await page.locator("#city-count").textContent(), /9 城/);
       assert.match(await page.locator("#place-count").textContent(), /5 处/);
       assert.match(await page.locator("#map-caption").textContent(), /北京/);
+      assert.equal(
+        await page
+          .locator(
+            '.source-note a[href="https://www.openstreetmap.org/copyright"]',
+          )
+          .textContent(),
+        "OpenStreetMap contributors",
+      );
+      assert.equal(
+        await page
+          .locator(
+            '.source-note a[href="https://opendatacommons.org/licenses/odbl/1-0/"]',
+          )
+          .textContent(),
+        "ODbL",
+      );
       await assertNoOverflow(page);
 
       await page.locator("#spin-button").click();
@@ -626,6 +667,20 @@ const tests = [
       assert.match(
         await page.locator("#result-image-credit").textContent(),
         /Wikimedia Commons.*Mcyjerry/,
+      );
+      assert.deepEqual(
+        await page
+          .locator("#result-image-credit a")
+          .evaluateAll((links) => links.map((link) => link.textContent)),
+        ["素材页", "许可证"],
+      );
+      assert.equal(
+        await page.locator("#result-image-credit a").nth(0).getAttribute("href"),
+        "https://commons.wikimedia.org/wiki/File:Peking_duck_with_sugar_scallion.jpg",
+      );
+      assert.equal(
+        await page.locator("#result-image-credit a").nth(1).getAttribute("href"),
+        "https://creativecommons.org/licenses/by-sa/4.0/",
       );
       const desktopResultCard = await page.locator("#result-card").boundingBox();
       const desktopResultMedia = await page.locator("#result-media").boundingBox();
@@ -650,6 +705,12 @@ const tests = [
       });
       await page.locator(".popup-food-image").scrollIntoViewIfNeeded();
       assert.equal(await page.locator(".popup-food-image").isVisible(), true);
+      assert.deepEqual(
+        await page
+          .locator(".popup-food-caption a")
+          .evaluateAll((links) => links.map((link) => link.textContent)),
+        ["素材页", "许可证"],
+      );
       assert.equal(
         await page
           .locator(".popup-food-image")

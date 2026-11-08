@@ -107,6 +107,10 @@ test("every city has a licensed local food example image", async () => {
     assert.ok(
       food.source.url.startsWith("https://commons.wikimedia.org/wiki/File:"),
     );
+    assert.match(
+      food.source.licenseUrl,
+      /^https:\/\/creativecommons\.org\/(licenses|publicdomain)\//,
+    );
 
     const image = await fetch(`${baseUrl}${food.image}`);
     assert.equal(image.status, 200);
@@ -154,7 +158,8 @@ test("new city endpoints expose the required place counts", async () => {
       body.places.every(
         (place) =>
           place.food.image.startsWith("/food/") &&
-          place.food.source.license.length > 0,
+          place.food.source.license.length > 0 &&
+          place.food.source.licenseUrl.startsWith("https://creativecommons.org/"),
       ),
     );
   }
