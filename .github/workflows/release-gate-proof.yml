@@ -26,13 +26,13 @@ jobs:
         run: |
           node tools/release-gate/release-gate.js \
             --repo https://github.com/CST18057/yeah-a-eat-what.git \
-            --ref 4b3f2ffeacd3ffe7c91b9be020d366bca58a6a64 \
+            --ref 71200354dabddeafc6bdfccaed4c3fad3cf2755f \
             --output release-gate.json
 
       - name: Upload release-gate evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: release-gate-4b3f2ff
+          name: release-gate-7120035
           path: release-gate.json
           if-no-files-found: error
