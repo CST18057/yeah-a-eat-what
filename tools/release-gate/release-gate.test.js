@@ -69,6 +69,7 @@ test("fingerprint ignores timings but changes with gate state", () => {
   report.steps[0].durationMs = 999999;
   report.finishedAt = "later";
   report.artifacts[0].sha256 = "d".repeat(64);
+  report.artifacts[0].bytes = 21;
   assert.equal(buildFingerprint(report), first);
 
   report.steps[0].status = "fail";
